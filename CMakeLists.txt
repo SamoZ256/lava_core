@@ -29,7 +29,7 @@ if (BACKEND_VULKAN)
     #set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 
     include_directories(
-        "/Users/samuliak/Documents/VMA/include/VMA"
+        "external/vma/include"
     )
 
     if (APPLE)
@@ -45,7 +45,7 @@ elseif (BACKEND_METAL)
     set(BACKEND metal)
 
     include_directories(
-        "/Users/samuliak/Documents/metal-cpp"
+        "external/metal-cpp/include"
     )
 endif ()
 
@@ -53,7 +53,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/${BACKEND})
 
 include_directories(
     "/Users/samuliak/Documents/lvnd/include"
-    "/Users/samuliak/Documents/stb/include"
+    "external/stb/include"
     "include/${BACKEND}"
     "include"
 )
