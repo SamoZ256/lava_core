@@ -1,7 +1,7 @@
 #ifndef LV_ALLOCATOR_H
 #define LV_ALLOCATOR_H
 
-#include <vk_mem_alloc.h>
+#include <vma/vk_mem_alloc.h>
 
 namespace lv {
 

@@ -36,20 +36,19 @@ void Framebuffer::init() {
         //std::cout << (int)maxArrayLength << std::endl;
         renderPasses[i]->setRenderTargetArrayLength(maxArrayLength);
 
-        commandBuffers[i] = g_device->commandQueue->commandBuffer();
+        //commandBuffers[i] = g_device->commandQueue->commandBuffer();
     }
 }
 
 void Framebuffer::destroy() {
     for (uint8_t i = 0; i < frameCount; i++) {
         renderPasses[i]->release();
-        commandBuffers[i]->release();
+        //commandBuffers[i]->release();
     }
 }
 
 void Framebuffer::bind() {
     uint8_t index = std::min(g_swapChain->crntFrame, uint8_t(renderPasses.size() - 1));
-    commandBuffers[index]->release();
     commandBuffers[index] = g_device->commandQueue->commandBuffer();
     g_swapChain->activeFramebuffer = this;
     encoder = commandBuffers[index]->renderCommandEncoder(renderPasses[index]);
@@ -62,6 +61,7 @@ void Framebuffer::unbind() {
 void Framebuffer::render() {
     uint8_t index = std::min(g_swapChain->crntFrame, uint8_t(renderPasses.size() - 1));
     commandBuffers[index]->commit();
+    commandBuffers[index]->release();
     encoder->release();
 }
 

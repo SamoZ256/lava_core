@@ -2,7 +2,7 @@
 #define LV_IMAGE_HELPER_H
 
 #include "common.hpp"
-#include <vk_mem_alloc.h>
+#include <vma/vk_mem_alloc.h>
 
 namespace lv {
 
