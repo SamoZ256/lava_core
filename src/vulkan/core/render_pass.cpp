@@ -8,32 +8,33 @@ namespace lv {
 
 void RenderPass::init(FramebufferAttachmentDescriptions framebufferAttachmentDescriptions/*, bool readDepthAttachment*/) {
     colorAttachmentCount = framebufferAttachmentDescriptions.colorAttachments.size();
-    hasDepthAttachment = framebufferAttachmentDescriptions.hasDepthAttachment;
 
     std::vector<VkAttachmentDescription> colorAttachmentDecriptions;
     std::vector<VkAttachmentReference> colorAttachmentReferences;
 
     for (int i = 0; i < framebufferAttachmentDescriptions.colorAttachments.size(); i++) {
+        Attachment& attachment = framebufferAttachmentDescriptions.colorAttachments[i];
         //colorAttachments[i]->usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-        colorAttachmentDecriptions.push_back(framebufferAttachmentDescriptions.colorAttachments[i].image->getAttachmentDescription(/*framebufferAttachmentDescriptions.colorAttachments[i].image->crntLayout*/));
+        colorAttachmentDecriptions.push_back(attachment.getAttachmentDescription(/*framebufferAttachmentDescriptions.colorAttachments[i].image->crntLayout*/));
         //framebufferAttachmentDescriptions.colorAttachments[i].image->crntLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        colorAttachmentReferences.push_back(framebufferAttachmentDescriptions.colorAttachments[i].image->getAttachmentReference(framebufferAttachmentDescriptions.colorAttachments[i].attachmentIndex, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL/*, framebufferAttachmentDescriptions.colorAttachments[i].image->crntLayout*/));
+        colorAttachmentReferences.push_back(attachment.getAttachmentReference(attachment.attachmentIndex, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL/*, framebufferAttachmentDescriptions.colorAttachments[i].image->crntLayout*/));
     }
 
     VkAttachmentDescription depthAttachmentDecription;
     VkAttachmentReference depthAttachmentReference;
-    if (framebufferAttachmentDescriptions.hasDepthAttachment) {
+    if (framebufferAttachmentDescriptions.depthAttachment.image != nullptr) {
+        Attachment& attachment = framebufferAttachmentDescriptions.depthAttachment;
         //if (readDepthAttachment) framebufferAttachmentDescriptions.depthAttachment.image->usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-        depthAttachmentDecription = framebufferAttachmentDescriptions.depthAttachment.image->getAttachmentDescription(/*framebufferAttachmentDescriptions.depthAttachment.image->crntLayout*/);
+        depthAttachmentDecription = attachment.getAttachmentDescription(/*framebufferAttachmentDescriptions.depthAttachment.image->crntLayout*/);
         //framebufferAttachmentDescriptions.depthAttachment.image->crntLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        depthAttachmentReference = framebufferAttachmentDescriptions.depthAttachment.image->getAttachmentReference(framebufferAttachmentDescriptions.depthAttachment.attachmentIndex, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL/*, framebufferAttachmentDescriptions.depthAttachment.image->crntLayout*/);
+        depthAttachmentReference = attachment.getAttachmentReference(attachment.attachmentIndex, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL/*, framebufferAttachmentDescriptions.depthAttachment.image->crntLayout*/);
     }
 
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = framebufferAttachmentDescriptions.colorAttachments.size();
     subpass.pColorAttachments = colorAttachmentReferences.data();
-    subpass.pDepthStencilAttachment = framebufferAttachmentDescriptions.hasDepthAttachment ? &depthAttachmentReference : nullptr;
+    subpass.pDepthStencilAttachment = framebufferAttachmentDescriptions.depthAttachment.image == nullptr ? nullptr : &depthAttachmentReference;
 
     /*
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -66,7 +67,7 @@ void RenderPass::init(FramebufferAttachmentDescriptions framebufferAttachmentDes
     */
 
     std::vector<VkAttachmentDescription> attachmentDescriptions = colorAttachmentDecriptions;
-    if (framebufferAttachmentDescriptions.hasDepthAttachment) attachmentDescriptions.push_back(depthAttachmentDecription);
+    if (framebufferAttachmentDescriptions.depthAttachment.image != nullptr) attachmentDescriptions.push_back(depthAttachmentDecription);
 
     VkRenderPassCreateInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;

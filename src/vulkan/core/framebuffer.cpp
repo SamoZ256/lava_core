@@ -5,11 +5,14 @@
 namespace lv {
 
 void Framebuffer::init(RenderPass* aRenderPass, uint16_t aWidth, uint16_t aHeight) {
+    if (frameCount == 0) frameCount = g_swapChain->maxFramesInFlight;
+
     renderPass = aRenderPass;
 
     width = aWidth;
     height = aHeight;
 
+    /*
     bool hasDepthAttachment = (depthAttachment.attachmentIndex != -1);
     for (auto& attachment : colorAttachments) {
         if (attachment.image == nullptr)
@@ -27,25 +30,26 @@ void Framebuffer::init(RenderPass* aRenderPass, uint16_t aWidth, uint16_t aHeigh
         if (depthAttachment.attachmentIndex == -1)
             throw std::invalid_argument("Depth attachment has invalid attachment index");
     }
+    */
 
-    for (auto& imageGroup : colorAttachments)
-        maxLayerCount = std::max((uint8_t)std::max((int8_t)imageGroup.image->layerCount, imageGroup.imageView->layerCount), maxLayerCount);
-    if (depthAttachment.attachmentIndex != -1)
+    for (auto& colorAttachment : colorAttachments)
+        maxLayerCount = std::max((uint8_t)std::max((int8_t)colorAttachment.image->layerCount, colorAttachment.imageView->layerCount), maxLayerCount);
+    if (depthAttachment.image != nullptr)
         maxLayerCount = std::max((uint8_t)std::max((int8_t)depthAttachment.image->layerCount, depthAttachment.imageView->layerCount), maxLayerCount);
 
     //Framebuffer
     //std::cout << (int)maxLayerCount << std::endl;
     framebuffers.resize(frameCount);
-    for (size_t i = 0; i < framebuffers.size(); i++) {
+    for (size_t i = 0; i < frameCount; i++) {
         //std::array<VkImageView, 2> attachments = {swapChainImageViews[i], depthImageViews[i]};
         std::vector<VkImageView> imageViews;
-        for (uint8_t v = 0; v < colorAttachments.size(); v++) {
-            uint8_t index = i < colorAttachments[v].imageView->imageViews.size() ? i : 0;
-            imageViews.push_back(colorAttachments[v].imageView->imageViews[index]);
+        for (auto& colorAttachment : colorAttachments) {
+            //uint8_t index = i < attachment->imageView->imageViews.size() ? i : 0;
+            imageViews.push_back(colorAttachment.imageView->imageViews[i]);
         }
-        if (depthAttachment.attachmentIndex != -1) {
-            uint8_t index = i < depthAttachment.imageView->imageViews.size() ? i : 0;
-            imageViews.push_back(depthAttachment.imageView->imageViews[index]);
+        if (depthAttachment.image != nullptr) {
+            //uint8_t index = i < depthAttachment.imageView->imageViews.size() ? i : 0;
+            imageViews.push_back(depthAttachment.imageView->imageViews[i]);
         }
 
         VkFramebufferCreateInfo framebufferInfo = {};
@@ -60,14 +64,15 @@ void Framebuffer::init(RenderPass* aRenderPass, uint16_t aWidth, uint16_t aHeigh
         VK_CHECK_RESULT(vkCreateFramebuffer(g_device->device(), &framebufferInfo, nullptr, &framebuffers[i]))
     }
 
-    SwapChain::createCommandBuffers(commandBuffers);
+    commandBuffer.frameCount = frameCount;
+    commandBuffer.init();
 
-    //Clear values precomputation
-    clearValues.resize(colorAttachments.size() + (hasDepthAttachment ? 1 : 0));
-    for (uint8_t i = 0; i < colorAttachments.size(); i++) {
-        clearValues[colorAttachments[i].attachmentIndex].color = {0.0f, 0.0f, 0.0f, 0.0f};
+    //Clear values
+    clearValues.resize(colorAttachments.size() + (depthAttachment.image == nullptr ? 0 : 1));
+    for (auto& colorAttachment : colorAttachments) {
+        clearValues[colorAttachment.attachmentIndex].color = {0.0f, 0.0f, 0.0f, 0.0f};
     }
-    if (hasDepthAttachment)
+    if (depthAttachment.image != nullptr)
         clearValues[depthAttachment.attachmentIndex].depthStencil = {1.0f, 0};
 }
 
@@ -78,25 +83,21 @@ void Framebuffer::destroyToRecreate() {
 }
 
 void Framebuffer::destroy() {
-    vkFreeCommandBuffers(g_device->device(), g_device->commandPool, commandBuffers.size(), commandBuffers.data());
+    commandBuffer.destroy();
     destroyToRecreate();
 }
 
 FramebufferAttachmentDescriptions Framebuffer::getAttachmentDescriptions() {
-    return {colorAttachments, depthAttachment, depthAttachment.attachmentIndex != -1};
+    return {colorAttachments, depthAttachment};
 }
 
 void Framebuffer::bind() {
     //g_swapChain->activeRenderPass = &renderPass->renderPass;
     //g_swapChain->activeCommandBuffers = &commandBuffers;
-    g_swapChain->activeFramebuffer = this;
     uint8_t index = g_swapChain->imageIndex;
 
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
     //std::cout << (int8_t)index << " : " << commandBuffers.size() << std::endl;
-    VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffers[index], &beginInfo))
+    commandBuffer.bind();
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -107,37 +108,24 @@ void Framebuffer::bind() {
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
 
-    vkCmdBeginRenderPass(commandBuffers[index], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(commandBuffer.commandBuffers[index], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void Framebuffer::unbind() {
     uint8_t index = g_swapChain->imageIndex;
 
-    vkCmdEndRenderPass(commandBuffers[index]);
-    VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffers[index]))
+    vkCmdEndRenderPass(commandBuffer.commandBuffers[index]);
+    commandBuffer.unbind();
 }
 
 void Framebuffer::render() {
-    //Rendering
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffers[g_swapChain->imageIndex];
-
-    VK_CHECK_RESULT(vkQueueSubmit(g_device->graphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE))
+    commandBuffer.submit();
 }
 
-void Framebuffer::addColorAttachment(Attachment attachment) {
-    colorAttachments.push_back(attachment);
-}
-
-void Framebuffer::setDepthAttachment(Attachment attachment) {
-    depthAttachment = attachment;
-}
-
+/*
 void Framebuffer::resize(uint16_t aWidth, uint16_t aHeight) {
     for (auto& attachment : colorAttachments) {
-        if (!attachment.image->resized) {
+        if (!attachment->image->resized) {
             attachment.image->resize(aWidth, aHeight);
             //std::cout << attachment.image->resized << std::endl;
             attachment.image->resized = true;
@@ -153,5 +141,6 @@ void Framebuffer::resize(uint16_t aWidth, uint16_t aHeight) {
     renderPass->init(getAttachmentDescriptions());
     init(renderPass, aWidth, aHeight);
 }
+*/
 
 } //namespace lv

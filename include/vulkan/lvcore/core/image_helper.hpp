@@ -16,7 +16,7 @@ public:
 
     static void createImageView(VkImageView& imageView, VkImage& image, VkFormat format, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, uint8_t baseLayer = 0, uint8_t layerCount = 1, uint8_t baseMip = 0, uint8_t mipCount = 1);
 
-    static void createImageSampler(VkSampler& sampler, VkFilter filter = VK_FILTER_LINEAR, VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT, float minLod = 0.0f, float maxLod = 0.0f);
+    static void createImageSampler(VkSampler& sampler, VkFilter filter = VK_FILTER_LINEAR, VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT, VkCompareOp compareOp = VK_COMPARE_OP_MAX_ENUM, float minLod = 0.0f, float maxLod = 0.0f);
 };
 
 } //namespace lv

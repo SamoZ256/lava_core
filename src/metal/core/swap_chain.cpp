@@ -8,17 +8,20 @@ namespace lv {
 
 SwapChain* g_swapChain = nullptr;
 
-SwapChain::SwapChain(LvndWindow* window) {
+SwapChain::SwapChain(SwapChainCreateInfo& createInfo) {
+    maxFramesInFlight = createInfo.maxFramesInFlight;
+
     framebuffer.frameCount = 1;
-    colorAttachment.frameCount = 1;
-    colorAttachment.format = MTL::PixelFormatBGRA8Unorm_sRGB;
-    colorAttachment.images.resize(1);
-    framebuffer.addColorAttachment({&colorAttachment, 0});
+    colorImage.frameCount = 1;
+    colorImage.format = MTL::PixelFormatBGRA8Unorm_sRGB;
+    colorImage.images.resize(1);
+
+    framebuffer.addColorAttachment(&colorImage, 0);
     //framebuffer.setDepthAttachment({&depthAttachment, 1});
 
     framebuffer.init();
 
-    init(window);
+    init(createInfo.window);
 
     semaphore = dispatch_semaphore_create(maxFramesInFlight);
 
@@ -58,7 +61,7 @@ void SwapChain::init(LvndWindow* window) {
 }
 
 void SwapChain::destroy() {
-    colorAttachment.destroy();
+    colorImage.destroy();
     framebuffer.destroy();
 }
 
@@ -73,7 +76,7 @@ void SwapChain::acquireNextImage() {
         throw std::runtime_error("Failed to acquire drawable");
     }
 
-    colorAttachment.images[0] = drawable->texture();
+    colorImage.images[0] = drawable->texture();
 
     framebuffer.destroy();
     framebuffer.init();
@@ -81,13 +84,13 @@ void SwapChain::acquireNextImage() {
 
 void SwapChain::synchronize() {
     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-    framebuffer.commandBuffers[0]->addCompletedHandler(^(MTL::CommandBuffer* cmd) {
+    framebuffer.commandBuffer.commandBuffers[0]->addCompletedHandler(^(MTL::CommandBuffer* cmd) {
         dispatch_semaphore_signal(g_swapChain->semaphore);
     });
 }
 
 void SwapChain::renderAndPresent() {
-    framebuffer.commandBuffers[0]->presentDrawable(drawable);
+    framebuffer.commandBuffer.commandBuffers[0]->presentDrawable(drawable);
     framebuffer.render();
 
     crntFrame = (crntFrame + 1) % maxFramesInFlight;

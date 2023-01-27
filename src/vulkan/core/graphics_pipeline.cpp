@@ -1,7 +1,5 @@
 #include "lvcore/core/graphics_pipeline.hpp"
 
-#include "lvcore/filesystem/filesystem.hpp"
-
 #include "lvcore/core/device.hpp"
 #include "lvcore/core/swap_chain.hpp"
 //#include "Core/Renderer.hpp"
@@ -9,37 +7,7 @@
 
 namespace lv {
 
-ShaderModule::ShaderModule(ShaderModuleCreateInfo& createInfo) {
-    std::string code = readFile(createInfo.filename);
-
-    VkShaderModuleCreateInfo moduleCreateInfo{};
-    moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    moduleCreateInfo.codeSize = code.size();
-    moduleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
-
-    VK_CHECK_RESULT(vkCreateShaderModule(g_device->device(), &moduleCreateInfo, nullptr, &ID))
-
-    //Specialization constants
-    specializationInfo.mapEntryCount = createInfo.specializationConstants.size();
-    specializationInfo.pMapEntries = createInfo.specializationConstants.data();
-    specializationInfo.dataSize = createInfo.constantsSize;
-    specializationInfo.pData = createInfo.constantsData;
-    //std::cout << "Size: " << constants.size() << " : " << (constants.size() == 0 ? "none" : std::to_string((int)constants[0].constantID) + ", " + std::to_string(*(float*)constantsData) + ", " + std::to_string(constants[0].size)) << std::endl;
-
-    stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stageInfo.stage = createInfo.shaderType;
-    stageInfo.module = ID;
-    stageInfo.pName = "main";
-    stageInfo.flags = 0;
-    stageInfo.pNext = nullptr;
-    stageInfo.pSpecializationInfo = (createInfo.specializationConstants.size() == 0 ? nullptr : &specializationInfo);
-}
-
-void ShaderModule::destroy() {
-    vkDestroyShaderModule(g_device->device(), ID, nullptr);
-}
-
-GraphicsPipeline::GraphicsPipeline(GraphicsPipelineCreateInfo& createInfo) : pipelineLayout(*createInfo.pipelineLayout), vertexShaderModule(*createInfo.vertexShaderModule), fragmentShaderModule(*createInfo.fragmentShaderModule)/*, pushConstantRanges(createInfo.pushConstantRanges.data()), pushConstantRangeCount(createInfo.pushConstantRanges.size())*/ {
+GraphicsPipeline::GraphicsPipeline(GraphicsPipelineCreateInfo& createInfo) : pipelineLayout(*createInfo.pipelineLayout)/*, pushConstantRanges(createInfo.pushConstantRanges.data()), pushConstantRangeCount(createInfo.pushConstantRanges.size())*/ {
     //Available shaders
     //geometryShader = (geometryFilename != nullptr);
     //createPipelineLayout(descriptorSetLayouts);
@@ -57,8 +25,8 @@ GraphicsPipeline::GraphicsPipeline(GraphicsPipelineCreateInfo& createInfo) : pip
             depthTest = VK_FALSE;
     } else depthTest = VK_FALSE;
     */
-    configInfo.depthStencilInfo.depthTestEnable = createInfo.config.depthTest;
-    configInfo.depthStencilInfo.depthWriteEnable = (createInfo.config.depthTest == VK_TRUE ? createInfo.config.depthWrite : VK_FALSE);
+    configInfo.depthStencilInfo.depthTestEnable = createInfo.config.depthTestEnable;
+    configInfo.depthStencilInfo.depthWriteEnable = (createInfo.config.depthTestEnable == VK_TRUE ? createInfo.config.depthWriteEnable : VK_FALSE);
     //std::cout << "Depth write: " << configInfo.depthStencilInfo.depthWriteEnable << std::endl;
 
     configInfo.renderPass = createInfo.renderPass->renderPass;
@@ -105,8 +73,8 @@ GraphicsPipeline::GraphicsPipeline(GraphicsPipelineCreateInfo& createInfo) : pip
     //std::cout << "VECTOR SIZE: " << attributeDescriptions.size() << std::endl;
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages(2);
-    shaderStages[0] = vertexShaderModule.stageInfo;
-    shaderStages[1] = fragmentShaderModule.stageInfo;
+    shaderStages[0] = createInfo.vertexShaderModule->stageInfo;
+    shaderStages[1] = createInfo.fragmentShaderModule->stageInfo;
     //if (geometryShader) shaderStages.push_back(geometryShaderModule.stageInfo);
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -149,7 +117,9 @@ void GraphicsPipeline::uploadPushConstants(void* data, uint8_t index) {
 }
 
 void GraphicsPipeline::bind() {
-  vkCmdBindPipeline(g_swapChain->getActiveCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdBindPipeline(g_swapChain->getActiveCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    g_swapChain->pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    //std::cout << "DEPENDENCY COUNT: " << (int)g_swapChain->activeFramebuffer->renderPass->dependencies.size() << std::endl;
 }
 
 PipelineConfigInfo GraphicsPipeline::defaultPipelineConfigInfo(GraphicsPipelineConfig& config, uint8_t colorAttachmentCount) {

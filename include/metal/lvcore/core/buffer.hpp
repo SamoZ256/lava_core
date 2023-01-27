@@ -14,11 +14,15 @@ public:
 
     void destroy();
 
-    void bindVertexBuffer(uint16_t index) { g_swapChain->activeFramebuffer->encoder->setVertexBuffer(buffer, 0, index); }
+    void bindVertexBuffer(uint16_t index) { g_swapChain->activeRenderEncoder->setVertexBuffer(buffer, 0, index); }
 
-    void render(size_t vertexSize) { g_swapChain->activeFramebuffer->encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(size / vertexSize)); }
+    void render(size_t vertexSize) { g_swapChain->activeRenderEncoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(size / vertexSize)); }
 
-    void renderIndexed(MTL::IndexType indexType, size_t indexSize) { g_swapChain->activeFramebuffer->encoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, size / indexSize, indexType, buffer, 0); }
+    void renderIndexed(MTL::IndexType indexType, size_t indexSize) { g_swapChain->activeRenderEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, size / indexSize, indexType, buffer, 0); }
+
+    static void copyBufferToBuffer(MTL::Buffer* srcBuffer, MTL::Buffer* dstBuffer, uint32_t size);
+
+    static void copyBufferToImage(MTL::Buffer* srcBuffer, MTL::Texture* dstImage, uint32_t width, uint32_t height, uint16_t bytesPerPixel = 4, uint8_t arrayLayer = 0, uint8_t mipLayer = 0);
 };
 
 } //namespace lv

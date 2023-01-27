@@ -9,25 +9,28 @@
 namespace lv {
 
 struct BufferInfo {
-  std::vector<VkDescriptorBufferInfo> infos;
+    std::vector<VkDescriptorBufferInfo> infos;
+    VkDescriptorType descriptorType;
 };
 
 class UniformBuffer {
 public:
-  std::vector<VkBuffer> buffers;
-  std::vector<VmaAllocation> allocations;
-  //std::vector<VmaAllocationInfo> allocInfos;
-  size_t size;
+    uint8_t frameCount = 0;
 
-  UniformBuffer(size_t aSize);
+    std::vector<VkBuffer> buffers;
+    std::vector<VmaAllocation> allocations;
+    //std::vector<VmaAllocationInfo> allocInfos;
+    size_t size;
 
-  void destroy();
+    UniformBuffer(size_t aSize);
 
-  //VkDescriptorSetLayoutBinding getBinding(uint8_t binding);
+    void destroy();
 
-  BufferInfo descriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    //VkDescriptorSetLayoutBinding getBinding(uint8_t binding);
 
-  void upload(void* uploadData);
+    BufferInfo descriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+
+    void upload(void* uploadData);
 };
 
 } //namespace lv

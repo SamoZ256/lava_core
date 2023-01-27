@@ -29,7 +29,9 @@ public:
     //VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
     VkFilter filter = VK_FILTER_LINEAR;
 
-    std::string filename;
+    bool generateMipmaps = false;
+
+    std::string filename = "";
 
     uint16_t width, height;
     void* textureData;

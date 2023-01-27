@@ -6,6 +6,7 @@
 #include "render_pass.hpp"
 #include "descriptor_set.hpp"
 #include "vertex_descriptor.hpp"
+#include "shader_module.hpp"
 
 namespace lv {
 
@@ -24,30 +25,11 @@ struct PipelineConfigInfo {
     uint32_t subpass = 0;
 };
 
-struct ShaderModuleCreateInfo {
-    VkShaderStageFlagBits shaderType;
-    const char* filename;
-    std::vector<VkSpecializationMapEntry> specializationConstants;
-    void* constantsData = nullptr;
-    uint32_t constantsSize;
-};
-
-class ShaderModule {
-public:
-    VkShaderModule ID;
-    VkPipelineShaderStageCreateInfo stageInfo;
-    VkSpecializationInfo specializationInfo{};
-
-    ShaderModule(ShaderModuleCreateInfo& createInfo);
-
-    void destroy();
-};
-
 struct GraphicsPipelineConfig {
     std::vector<unsigned int> blends = {VK_FALSE};
     VkCullModeFlagBits cullMode = VK_CULL_MODE_NONE;
-    unsigned int depthTest = VK_FALSE;
-    unsigned int depthWrite = VK_TRUE;
+    unsigned int depthTestEnable = VK_FALSE;
+    unsigned int depthWriteEnable = VK_TRUE;
     VkCompareOp depthOp = VK_COMPARE_OP_LESS;
 };
 
@@ -67,10 +49,8 @@ class GraphicsPipeline {
 public:
     VkPipeline graphicsPipeline;
     //VkPipelineLayout pipelineLayout;
+    
     PipelineLayout& pipelineLayout;
-
-    ShaderModule& vertexShaderModule;
-    ShaderModule& fragmentShaderModule;
     //ShaderModule geometryShaderModule;
 
     //VkPushConstantRange* pushConstantRanges;

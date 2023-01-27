@@ -15,11 +15,13 @@ namespace lv {
 
 class Image {
 public:
-    uint8_t frameCount = MAX_FRAMES_IN_FLIGHT;
+    uint8_t frameCount = 0;
 
     std::vector<VkImage> images;
     std::vector<VmaAllocation> allocations;
     //std::vector<VkDeviceMemory> imageMemories;
+
+    uint16_t width, height;
 
     VkFormat format;
     VkImageUsageFlags usage = 0;// = /*VK_IMAGE_USAGE_TRANSFER_DST_BIT | */VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -28,24 +30,21 @@ public:
     uint8_t mipCount = 1;
     //VkImageLayout dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     VkImageCreateFlags flags = 0;
-    VkImageLayout crntLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	VmaAllocationCreateFlags allocationFlags = 0;
 
     bool resized = false;
 
-    void init(uint16_t width, uint16_t height);
+    void init(uint16_t aWidth, uint16_t aHeight);
 
-    VkAttachmentDescription getAttachmentDescription(/*VkImageLayout finalLayout*/);
+    void destroy();
 
-    VkAttachmentReference getAttachmentReference(uint8_t index, VkImageLayout layout);
-
-    void transitionLayout(VkImageLayout dstLayout);
+    void transitionLayout(VkImageLayout srcLayout, VkImageLayout dstLayout);
 
     void resize(uint16_t width, uint16_t height);
 
-    void destroy();
+    void generateMipmaps();
 };
 
 } //namespace lv

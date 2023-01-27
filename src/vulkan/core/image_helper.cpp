@@ -171,11 +171,11 @@ void ImageHelper::createImageView(VkImageView& imageView, VkImage& image, VkForm
     VK_CHECK_RESULT(vkCreateImageView(g_device->device(), &viewInfo, nullptr, &imageView))
 }
 
-void ImageHelper::createImageSampler(VkSampler& sampler, VkFilter filter, VkSamplerAddressMode addressMode, float minLod, float maxLod) {
+void ImageHelper::createImageSampler(VkSampler& sampler, VkFilter filter, VkSamplerAddressMode addressMode, VkCompareOp compareOp, float minLod, float maxLod) {
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = filter;
-    samplerInfo.minFilter = VK_FILTER_NEAREST;
+    samplerInfo.minFilter = (maxLod > 0.0f ? VK_FILTER_LINEAR : VK_FILTER_NEAREST);
     samplerInfo.addressModeU = addressMode;
     samplerInfo.addressModeV = addressMode;
     samplerInfo.addressModeW = addressMode;
@@ -188,8 +188,8 @@ void ImageHelper::createImageSampler(VkSampler& sampler, VkFilter filter, VkSamp
     samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
 
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.compareEnable = (compareOp != VK_COMPARE_OP_MAX_ENUM);
+    samplerInfo.compareOp = compareOp;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     samplerInfo.mipLodBias = 0.0f;
     samplerInfo.minLod = minLod;

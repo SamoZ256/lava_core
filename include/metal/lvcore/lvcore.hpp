@@ -6,6 +6,7 @@
 
 #include "core/attachment.hpp"
 #include "core/buffer.hpp"
+#include "core/compute_pipeline.hpp"
 #include "core/device.hpp"
 #include "core/framebuffer.hpp"
 #include "core/graphics_pipeline.hpp"

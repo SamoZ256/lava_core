@@ -20,12 +20,15 @@ namespace lv {
 struct SwapChainCreateInfo {
 	LvndWindow* window;
   	bool vsyncEnabled = true;
+	uint8_t maxFramesInFlight = 2;
 	bool clearAttachment = false;
 };
 
 class SwapChain {
 public:
 	bool vsyncEnabled = true;
+
+	uint8_t maxFramesInFlight;
 
 	uint32_t imageIndex = 0;
 	uint8_t crntFrame = 0;
@@ -58,7 +61,7 @@ public:
 	uint32_t width() { return swapChainExtent.width; }
 	uint32_t height() { return swapChainExtent.height; }
 
-	VkCommandBuffer& getActiveCommandBuffer() { return activeFramebuffer->commandBuffers[imageIndex]; }
+	VkCommandBuffer& getActiveCommandBuffer() { return activeCommandBuffer->commandBuffers[std::min(imageIndex, uint32_t(activeCommandBuffer->frameCount - 1))]; }
 
 	float extentAspectRatio() {
 		return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
@@ -81,7 +84,7 @@ public:
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
-	static void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers);
+	void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers);
 
 	void renderFullscreenTriangle() { vkCmdDraw(getActiveCommandBuffer(), 3, 1, 0, 0); }
 
@@ -104,12 +107,15 @@ public:
 	//Image depthImage;
 	//ImageView depthImageView;
 
+	VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+
 	//std::vector<VkImage> swapChainImages;
 	//std::vector<VkImageView> swapChainImageViews;
 
 	VkExtent2D windowExtent;
 
 	VkSwapchainKHR swapChain;
+	VkSwapchainKHR oldSwapChain = VK_NULL_HANDLE;
 
 	std::vector<VkSemaphore> imageAvailableSemaphores;
 	std::vector<VkSemaphore> renderFinishedSemaphores;
@@ -117,7 +123,8 @@ public:
 	std::vector<VkFence> imagesInFlight;
 
 	//Current active
-	Framebuffer* activeFramebuffer;
+	CommandBuffer* activeCommandBuffer;
+	VkPipelineBindPoint pipelineBindPoint;
 };
 
 extern SwapChain* g_swapChain;

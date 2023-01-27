@@ -7,7 +7,9 @@ namespace lv {
 
 struct Attachment {
     Image* image = nullptr;
-    int8_t attachmentIndex = -1;
+    uint8_t attachmentIndex;
+    MTL::LoadAction loadOp;
+    MTL::StoreAction storeOp;
 };
 
 } //namespace lv

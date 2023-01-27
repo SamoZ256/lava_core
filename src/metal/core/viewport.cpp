@@ -30,8 +30,8 @@ void Viewport::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height
 }
 
 void Viewport::bind() {
-    g_swapChain->activeFramebuffer->encoder->setViewport(viewport);
-    g_swapChain->activeFramebuffer->encoder->setScissorRect(scissor);
+    g_swapChain->activeRenderEncoder->setViewport(viewport);
+    g_swapChain->activeRenderEncoder->setScissorRect(scissor);
 }
 
 } //namespace lv

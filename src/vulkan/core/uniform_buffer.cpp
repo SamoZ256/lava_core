@@ -11,11 +11,13 @@
 namespace lv {
 
 UniformBuffer::UniformBuffer(size_t aSize) : size(aSize) {
-	buffers.resize(MAX_FRAMES_IN_FLIGHT);
-	allocations.resize(MAX_FRAMES_IN_FLIGHT);
+	if (frameCount == 0) frameCount = g_swapChain->maxFramesInFlight;
+
+	buffers.resize(frameCount);
+	allocations.resize(frameCount);
 	//allocInfos.resize(MAX_FRAMES_IN_FLIGHT);
 
-	for (uint8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+	for (uint8_t i = 0; i < frameCount; i++) {
 		//VmaAllocationInfo allocInfo;
 		allocations[i] = BufferHelper::createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, buffers[i], nullptr, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		//std::cout << "Offset: " << allocInfo.offset << std::endl;
@@ -24,7 +26,7 @@ UniformBuffer::UniformBuffer(size_t aSize) : size(aSize) {
 }
 
 void UniformBuffer::destroy() {
-	for (uint8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+	for (uint8_t i = 0; i < frameCount; i++) {
 		vmaDestroyBuffer(g_allocator->allocator, buffers[i], allocations[i]);
 	}
 }
@@ -43,13 +45,16 @@ VkDescriptorSetLayoutBinding UniformBuffer::getBinding(uint8_t binding) {
 */
 
 BufferInfo UniformBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset) {
-	BufferInfo bufferInfo;
-	bufferInfo.infos.resize(MAX_FRAMES_IN_FLIGHT);
-	for (uint8_t i = 0; i < bufferInfo.infos.size(); i++) {
-		bufferInfo.infos[i] = VkDescriptorBufferInfo{buffers[i], offset, size};
+	BufferInfo info;
+	info.infos.resize(frameCount);
+	for (uint8_t i = 0; i < frameCount; i++) {
+		info.infos[i].buffer = buffers[i];// = VkDescriptorBufferInfo{buffers[i], offset, size};
+		info.infos[i].offset = offset;
+		info.infos[i].range = size;
 	}
+	info.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-	return bufferInfo;
+	return info;
 }
 
 void UniformBuffer::upload(void* uploadData) {

@@ -8,27 +8,26 @@
 namespace lv {
 
 void Framebuffer::init() {
-    if (frameCount == -1) frameCount = g_swapChain->maxFramesInFlight;
+    if (frameCount == 0) frameCount = g_swapChain->maxFramesInFlight;
     
     renderPasses.resize(frameCount);
-    commandBuffers.resize(frameCount);
     for (uint8_t i = 0; i < frameCount; i++) {
         renderPasses[i] = MTL::RenderPassDescriptor::alloc()->init();
         uint16_t maxArrayLength = 1;
         for (auto& colorAttachment : colorAttachments) {
             MTL::RenderPassColorAttachmentDescriptor* attachment = renderPasses[i]->colorAttachments()->object(colorAttachment.attachmentIndex);
             attachment->setClearColor(MTL::ClearColor::Make(0.0, 0.0, 0.0, 1.0));
-            attachment->setLoadAction(colorAttachment.image->loadOp);
-            attachment->setStoreAction(MTL::StoreActionStore);
+            attachment->setLoadAction(colorAttachment.loadOp);
+            attachment->setStoreAction(colorAttachment.storeOp);
             attachment->setTexture(colorAttachment.image->images[i]);
             maxArrayLength = std::max(maxArrayLength, colorAttachment.image->layerCount);
         }
 
-        if (depthAttachment.attachmentIndex != -1) {
+        if (depthAttachment.image != nullptr) {
             MTL::RenderPassDepthAttachmentDescriptor* attachment = renderPasses[i]->depthAttachment();
             attachment->setClearDepth(1.0);
-            attachment->setLoadAction(depthAttachment.image->loadOp);
-            attachment->setStoreAction(MTL::StoreActionStore);
+            attachment->setLoadAction(depthAttachment.loadOp);
+            attachment->setStoreAction(depthAttachment.storeOp);
             attachment->setTexture(depthAttachment.image->images[i]);
             //renderPass->setDepthAttachment(attachment);
             maxArrayLength = std::max(maxArrayLength, depthAttachment.image->layerCount);
@@ -38,6 +37,9 @@ void Framebuffer::init() {
 
         //commandBuffers[i] = g_device->commandQueue->commandBuffer();
     }
+
+    commandBuffer.frameCount = frameCount;
+    commandBuffer.init();
 }
 
 void Framebuffer::destroy() {
@@ -49,9 +51,10 @@ void Framebuffer::destroy() {
 
 void Framebuffer::bind() {
     uint8_t index = std::min(g_swapChain->crntFrame, uint8_t(renderPasses.size() - 1));
-    commandBuffers[index] = g_device->commandQueue->commandBuffer();
-    g_swapChain->activeFramebuffer = this;
-    encoder = commandBuffers[index]->renderCommandEncoder(renderPasses[index]);
+    commandBuffer.bind();
+    encoder = commandBuffer.createRenderCommandEncoder(renderPasses[index]);
+    g_swapChain->activeRenderEncoder = encoder;
+    g_swapChain->activeRenderPasses = renderPasses;
 }
 
 void Framebuffer::unbind() {
@@ -59,9 +62,7 @@ void Framebuffer::unbind() {
 }
 
 void Framebuffer::render() {
-    uint8_t index = std::min(g_swapChain->crntFrame, uint8_t(renderPasses.size() - 1));
-    commandBuffers[index]->commit();
-    commandBuffers[index]->release();
+    commandBuffer.submit();
     encoder->release();
 }
 

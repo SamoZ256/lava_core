@@ -4,15 +4,16 @@
 #include <vector>
 
 #include "attachment.hpp"
+#include "command_buffer.hpp"
 
 namespace lv {
 
 class Framebuffer {
 public:
-    int8_t frameCount = -1;
+    uint8_t frameCount = 0;
 
     std::vector<MTL::RenderPassDescriptor*> renderPasses;
-    std::vector<MTL::CommandBuffer*> commandBuffers;
+    CommandBuffer commandBuffer;
     MTL::RenderCommandEncoder* encoder = nullptr;
 
     std::vector<Attachment> colorAttachments;
@@ -22,9 +23,13 @@ public:
 
     void destroy();
 
-    void addColorAttachment(Attachment attachment) { colorAttachments.push_back(attachment); }
+    void addColorAttachment(Image* image, uint8_t attachmentIndex, MTL::LoadAction loadOp = MTL::LoadActionDontCare, MTL::StoreAction storeOp = MTL::StoreActionStore) {
+        colorAttachments.push_back({image, attachmentIndex, loadOp, storeOp});
+    }
 
-    void setDepthAttachment(Attachment attachment) { depthAttachment = attachment; }
+    void setDepthAttachment(Image* image, uint8_t attachmentIndex, MTL::LoadAction loadOp = MTL::LoadActionDontCare, MTL::StoreAction storeOp = MTL::StoreActionStore) {
+        depthAttachment = {image, attachmentIndex, loadOp, storeOp};
+    }
 
     void bind();
 

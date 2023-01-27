@@ -14,9 +14,11 @@ public:
     Image image;
     Sampler sampler;
 
-    std::string filename;
+    std::string filename = "";
 
-    MTL::SamplerMinMagFilter filter = MTL::SamplerMinMagFilter::SamplerMinMagFilterLinear;
+    MTL::SamplerMinMagFilter filter = MTL::SamplerMinMagFilterLinear;
+
+    bool generateMipmaps = false;
 
     uint16_t width, height;
     void* textureData;

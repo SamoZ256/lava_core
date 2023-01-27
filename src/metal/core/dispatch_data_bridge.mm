@@ -1,4 +1,4 @@
-#include "lvcore/core/graphics_pipeline.hpp"
+#include "lvcore/core/shader_module.hpp"
 
 #include <string>
 

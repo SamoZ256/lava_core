@@ -2,15 +2,16 @@
 #define LV_FRAMEBUFFER_H
 
 #include "render_pass.hpp"
+#include "command_buffer.hpp"
 
 namespace lv {
 
 class Framebuffer {
 public:
-    uint8_t frameCount = MAX_FRAMES_IN_FLIGHT;
+    uint8_t frameCount = 0;
 
     std::vector<VkFramebuffer> framebuffers;
-    std::vector<VkCommandBuffer> commandBuffers;
+    CommandBuffer commandBuffer;
     RenderPass* renderPass;
 
     std::vector<Attachment> colorAttachments;
@@ -29,11 +30,15 @@ public:
 
     FramebufferAttachmentDescriptions getAttachmentDescriptions();
 
-    void addColorAttachment(Attachment attachment);
+    void addColorAttachment(Image* image, ImageView* imageView, uint8_t attachmentIndex, VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, VkAttachmentStoreOp storeOp = VK_ATTACHMENT_STORE_OP_STORE) {
+        colorAttachments.push_back({image, imageView, attachmentIndex, loadOp, storeOp});
+    }
 
-    void setDepthAttachment(Attachment attachment);
+    void setDepthAttachment(Image* image, ImageView* imageView, uint8_t attachmentIndex, VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, VkAttachmentStoreOp storeOp = VK_ATTACHMENT_STORE_OP_STORE) {
+        depthAttachment = {image, imageView, attachmentIndex, loadOp, storeOp};
+    }
 
-    void resize(uint16_t aWidth, uint16_t aHeight);
+    //void resize(uint16_t aWidth, uint16_t aHeight);
 
     void bind();
 

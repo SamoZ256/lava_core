@@ -5,9 +5,14 @@
 
 namespace lv {
 
+struct ImageInfo {
+    std::vector<VkDescriptorImageInfo> infos;
+    VkDescriptorType descriptorType;
+};
+
 class ImageView {
 public:
-    uint8_t frameCount = MAX_FRAMES_IN_FLIGHT;
+    uint8_t frameCount = 0;
 
     std::vector<VkImageView> imageViews;
     Image* image;
@@ -21,6 +26,8 @@ public:
     void init(Image* aImage);
 
     void destroy();
+
+    ImageInfo descriptorInfo(VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 };
 
 } //namespace lv

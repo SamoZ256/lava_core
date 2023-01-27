@@ -1,6 +1,8 @@
 #ifndef LV_SAMPLER_H
 #define LV_SAMPLER_H
 
+#include "enums.hpp"
+
 #include "swap_chain.hpp"
 
 namespace lv {
@@ -10,12 +12,16 @@ public:
     MTL::SamplerState* sampler;
     MTL::SamplerMinMagFilter filter = MTL::SamplerMinMagFilter::SamplerMinMagFilterNearest;
     MTL::SamplerAddressMode addressMode = MTL::SamplerAddressModeClampToEdge;
+    unsigned int compareEnable = false;
+    MTL::CompareFunction compareOp = MTL::CompareFunctionLess;
+    float minLod = 0.0f;
+    float maxLod = 0.0f;
 
-    void init(float maxLod = 0.0f);
+    void init();
 
     void destroy() { sampler->release(); }
 
-    void bind(uint16_t index) { g_swapChain->activeFramebuffer->encoder->setFragmentSamplerState(sampler, index); }
+    void bind(uint16_t index, LvShaderStage shaderStage = LV_SHADER_STAGE_FRAGMENT_BIT);
 };
 
 } //namespace lv

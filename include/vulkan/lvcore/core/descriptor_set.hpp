@@ -21,55 +21,55 @@ namespace lv {
 class DescriptorSet;
 
 class DescriptorSetLayout {
- public:
-  DescriptorSetLayout() = default;
-  
-  void destroy();
+public:
+    DescriptorSetLayout() = default;
+    
+    void destroy();
 
-  //DescriptorSetLayout(const DescriptorSetLayout&) = delete;
-  DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
+    //DescriptorSetLayout(const DescriptorSetLayout&) = delete;
+    DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
 
-  void addBinding(
-        uint32_t binding,
-        VkDescriptorType descriptorType,
-        VkShaderStageFlags stageFlags);
- 
-  VkDescriptorSetLayout descriptorSetLayout;
-  std::vector<VkDescriptorSetLayoutBinding> bindings;
+    void addBinding(
+            uint32_t binding,
+            VkDescriptorType descriptorType,
+            VkShaderStageFlags stageFlags);
+    
+    VkDescriptorSetLayout descriptorSetLayout;
+    std::vector<VkDescriptorSetLayoutBinding> bindings;
 
-  void init();
+    void init();
 };
 
 class PipelineLayout {
 public:
-  std::vector<DescriptorSetLayout> descriptorSetLayouts;
-  VkPipelineLayout pipelineLayout;
-  std::vector<VkPushConstantRange> pushConstantRanges;
+    std::vector<DescriptorSetLayout> descriptorSetLayouts;
+    VkPipelineLayout pipelineLayout;
+    std::vector<VkPushConstantRange> pushConstantRanges;
 
-  void init();
+    void init();
 
-  void destroy();
+    void destroy();
 };
  
 class DescriptorWriter {
- public:
-  //uint8_t layouts;
-  PipelineLayout& pipelineLayout;
-  uint8_t layoutIndex;
-  std::vector<VkWriteDescriptorSet> writes;
+public:
+    //uint8_t layouts;
+    PipelineLayout& pipelineLayout;
+    uint8_t layoutIndex;
+    std::vector<VkWriteDescriptorSet> writes;
 
-  DescriptorWriter(PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
- 
-  void writeBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
-  void writeImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
- 
-  void build(VkDescriptorSet &set);
-  void overwrite(VkDescriptorSet &set);
+    DescriptorWriter(PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
+    
+    void writeBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
+    void writeImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
+    
+    void build(VkDescriptorSet &set);
+    void overwrite(VkDescriptorSet &set);
 };
 
 class DescriptorSet {
 public:
-    uint8_t frameCount = MAX_FRAMES_IN_FLIGHT;
+    uint8_t frameCount = 0;
 
     std::vector<VkDescriptorSet> descriptorSets;
 
@@ -92,9 +92,9 @@ public:
 
     void destroy();
 
-    void addBufferBinding(BufferInfo bufferInfo, uint32_t binding, VkDescriptorType descriptorType);
+    void addBinding(BufferInfo bufferInfo, uint32_t binding);
 
-    void addImageBinding(ImageInfo imageInfo, uint32_t binding, VkDescriptorType descriptorType);
+    void addBinding(ImageInfo imageInfo, uint32_t binding);
 
     void bind();
 
@@ -112,33 +112,33 @@ struct DescriptorPoolCreateInfo {
 };
 
 class DescriptorPool {
- public:
-  VkDescriptorPool descriptorPool;
+public:
+    VkDescriptorPool descriptorPool;
 
-  std::vector<VkDescriptorPool> oldPools;
+    std::vector<VkDescriptorPool> oldPools;
 
-  std::vector<VkDescriptorPoolSize> poolSizesVec{};
-  uint32_t maxSets = 1024;
-  VkDescriptorPoolCreateFlags poolFlags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    std::vector<VkDescriptorPoolSize> poolSizesVec{};
+    uint32_t maxSets = 1024;
+    VkDescriptorPoolCreateFlags poolFlags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
-	std::map<VkDescriptorType, uint16_t> poolSizesBegin;
-	std::map<VkDescriptorType, uint16_t> poolSizes;
+        std::map<VkDescriptorType, uint16_t> poolSizesBegin;
+        std::map<VkDescriptorType, uint16_t> poolSizes;
 
-  DescriptorPool(DescriptorPoolCreateInfo& createInfo);
+    DescriptorPool(DescriptorPoolCreateInfo& createInfo);
 
-  void init();
+    void init();
 
-  void destroy();
+    void destroy();
 
-  //void addPoolSize(VkDescriptorType descriptorType, uint32_t count);
- 
-  void allocateDescriptorSet(const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet& descriptor) const;
- 
-  //void freeDescriptorSets(std::vector<VkDescriptorSet> &descriptors) const;
- 
-  //void resetPool();
+    //void addPoolSize(VkDescriptorType descriptorType, uint32_t count);
+    
+    void allocateDescriptorSet(const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet& descriptor) const;
+    
+    //void freeDescriptorSets(std::vector<VkDescriptorSet> &descriptors) const;
+    
+    //void resetPool();
 
-  void recreate();
+    void recreate();
 };
 
 /*

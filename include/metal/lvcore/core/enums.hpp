@@ -9,7 +9,8 @@
 //Shader stage
 enum LvShaderStage {
     LV_SHADER_STAGE_VERTEX_BIT,
-    LV_SHADER_STAGE_FRAGMENT_BIT
+    LV_SHADER_STAGE_FRAGMENT_BIT,
+    LV_SHADER_STAGE_COMPUTE_BIT
 };
 
 //Format
@@ -86,6 +87,7 @@ enum LvShaderStage {
 #define LV_IMAGE_USAGE_SAMPLED_BIT MTL::TextureUsageShaderRead
 #define LV_IMAGE_USAGE_COLOR_ATTACHMENT_BIT MTL::TextureUsageRenderTarget
 #define LV_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT MTL::TextureUsageRenderTarget
+#define LV_IMAGE_USAGE_STORAGE_BIT MTL::TextureUsageShaderWrite
 
 //Filter
 #define LV_FILTER_NEAREST MTL::SamplerMinMagFilterNearest
@@ -115,6 +117,10 @@ enum LvShaderStage {
 #define LV_ATTACHMENT_LOAD_OP_DONT_CARE MTL::LoadActionDontCare
 #define LV_ATTACHMENT_LOAD_OP_CLEAR MTL::LoadActionClear
 #define LV_ATTACHMENT_LOAD_OP_LOAD MTL::LoadActionLoad
+
+//Store Op
+#define LV_ATTACHMENT_STORE_OP_DONT_CARE MTL::StoreActionDontCare
+#define LV_ATTACHMENT_STORE_OP_STORE MTL::StoreActionStore
 
 //Compare op
 #define LV_COMPARE_OP_NEVER MTL::CompareFunctionNever

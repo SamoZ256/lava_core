@@ -7,6 +7,7 @@
 #include "core/allocator.hpp"
 #include "core/attachment.hpp"
 #include "core/buffer.hpp"
+#include "core/compute_pipeline.hpp"
 #include "core/descriptor_set.hpp"
 #include "core/device.hpp"
 #include "core/framebuffer.hpp"

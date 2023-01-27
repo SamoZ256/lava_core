@@ -10,7 +10,6 @@ namespace lv {
 struct FramebufferAttachmentDescriptions {
     std::vector<Attachment>& colorAttachments;
     Attachment& depthAttachment;
-    bool hasDepthAttachment;
 };
 
 class RenderPass {

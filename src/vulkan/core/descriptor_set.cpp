@@ -43,7 +43,7 @@ DescriptorPool::DescriptorPool(DescriptorPoolCreateInfo& createInfo) {
 	poolSizes = poolSizesBegin;
 
 	for (const auto& [key, value] : poolSizes) {
-		poolSizesVec.push_back({key, (unsigned)value * MAX_FRAMES_IN_FLIGHT});
+		poolSizesVec.push_back({key, (unsigned)value * g_swapChain->maxFramesInFlight});
 	}
 
 	init();
@@ -165,6 +165,8 @@ void DescriptorSet::destroy() {
 */
 
 void DescriptorSet::init() {
+	if (frameCount == 0) frameCount = g_swapChain->maxFramesInFlight;
+
 	registerDescriptorSet();
 	
 	descriptorSets.resize(frameCount);
@@ -197,24 +199,24 @@ void DescriptorSet::destroy() {
 	descriptorTypes.clear();
 }
 
-void DescriptorSet::addBufferBinding(BufferInfo bufferInfo, uint32_t binding, VkDescriptorType descriptorType) {
+void DescriptorSet::addBinding(BufferInfo bufferInfo, uint32_t binding) {
     //g_descriptorManager->descriptorPool.addPoolSize(descriptorType, SwapChain::MAX_FRAMES_IN_FLIGHT);
 	for (uint8_t i = 0; i < frameCount; i++)
-    	descriptorTypes.push_back(descriptorType);
+    	descriptorTypes.push_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     bufferBindingIndices.push_back(binding);
     bufferInfos.push_back(bufferInfo);
 }
 
-void DescriptorSet::addImageBinding(ImageInfo imageInfo, uint32_t binding, VkDescriptorType descriptorType) {
+void DescriptorSet::addBinding(ImageInfo imageInfo, uint32_t binding) {
     //g_descriptorManager->descriptorPool.addPoolSize(descriptorType, SwapChain::MAX_FRAMES_IN_FLIGHT);
 	for (uint8_t i = 0; i < frameCount; i++)
-    	descriptorTypes.push_back(descriptorType);
+    	descriptorTypes.push_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     imageBindingIndices.push_back(binding);
     imageInfos.push_back(imageInfo);
 }
 
 void DescriptorSet::bind() {
-  vkCmdBindDescriptorSets(g_swapChain->getActiveCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout.pipelineLayout, layoutIndex, 1, &descriptorSets[g_swapChain->imageIndex], 0, nullptr);
+  	vkCmdBindDescriptorSets(g_swapChain->getActiveCommandBuffer(), g_swapChain->pipelineBindPoint, pipelineLayout.pipelineLayout, layoutIndex, 1, &descriptorSets[g_swapChain->imageIndex], 0, nullptr);
 }
 
 bool DescriptorSet::registerDescriptor(VkDescriptorType descriptorType) {
