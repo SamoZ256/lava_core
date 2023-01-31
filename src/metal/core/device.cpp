@@ -1,17 +1,17 @@
-#include "lvcore/core/device.hpp"
+#include "metal/lvcore/core/device.hpp"
 
 namespace lv {
 
-Device* g_device = nullptr;
+Metal_Device* g_metal_device = nullptr;
 
-Device::Device() {
+Metal_Device::Metal_Device(Metal_DeviceCreateInfo& createInfo) {
     device = MTL::CreateSystemDefaultDevice();
     commandQueue = device->newCommandQueue();
 
-    g_device = this;
+    g_metal_device = this;
 }
 
-void Device::destroy() {
+void Metal_Device::destroy() {
     device->release();
     commandQueue->release();
 }

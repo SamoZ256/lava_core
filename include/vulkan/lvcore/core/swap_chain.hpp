@@ -1,5 +1,5 @@
-#ifndef LV_SWAP_CHAIN_H
-#define LV_SWAP_CHAIN_H
+#ifndef LV_VULKAN_SWAP_CHAIN_H
+#define LV_VULKAN_SWAP_CHAIN_H
 
 // std
 #include <array>
@@ -17,14 +17,14 @@
 
 namespace lv {
 
-struct SwapChainCreateInfo {
+struct Vulkan_SwapChainCreateInfo {
 	LvndWindow* window;
   	bool vsyncEnabled = true;
 	uint8_t maxFramesInFlight = 2;
 	bool clearAttachment = false;
 };
 
-class SwapChain {
+class Vulkan_SwapChain {
 public:
 	bool vsyncEnabled = true;
 
@@ -37,7 +37,7 @@ public:
 
 	LvndWindow* _window;
 
-	SwapChain(SwapChainCreateInfo& createInfo);
+	Vulkan_SwapChain(Vulkan_SwapChainCreateInfo& createInfo);
 
 	void init(LvndWindow* window);
 
@@ -49,8 +49,8 @@ public:
 
 	void renderAndPresent();
 
-	SwapChain(const SwapChain &) = delete;
-	void operator=(const SwapChain &) = delete;
+	Vulkan_SwapChain(const Vulkan_SwapChain &) = delete;
+	void operator=(const Vulkan_SwapChain &) = delete;
 
 	//VkFramebuffer getFramebuffer(int index) { return swapChainFramebuffers[index]; }
 	//VkRenderPass getRenderPass() { return renderPass; }
@@ -75,8 +75,6 @@ public:
 	void createSwapChain();
 	void createImageViews();
 	//void createDepthResources();
-	void createRenderPass();
-	void createFramebuffers();
 	void createSyncObjects();
 
 	// Helper functions
@@ -100,10 +98,11 @@ public:
 	//std::vector<VkImage> swapChainImages;
 	//std::vector<VkImageView> swapChainImageViews;
 
-	RenderPass renderPass;
-	Framebuffer framebuffer;
-	Image image;
-	ImageView imageView;
+	Vulkan_Subpass subpass;
+	Vulkan_RenderPass renderPass;
+	Vulkan_Framebuffer framebuffer;
+	Vulkan_Image image;
+	Vulkan_ImageView imageView;
 	//Image depthImage;
 	//ImageView depthImageView;
 
@@ -123,14 +122,14 @@ public:
 	std::vector<VkFence> imagesInFlight;
 
 	//Current active
-	CommandBuffer* activeCommandBuffer;
+	Vulkan_CommandBuffer* activeCommandBuffer;
 	VkPipelineBindPoint pipelineBindPoint;
 };
 
-extern SwapChain* g_swapChain;
+extern Vulkan_SwapChain* g_vulkan_swapChain;
 
 //Implementation
-//class Swap { public: static SwapChain* g_swapChain; };
+//class Swap { public: static SwapChain* g_metal_swapChain; };
 
 } //namespace lv
 

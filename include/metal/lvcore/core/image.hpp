@@ -1,5 +1,5 @@
-#ifndef LV_IMAGE_H
-#define LV_IMAGE_H
+#ifndef LV_METAL_IMAGE_H
+#define LV_METAL_IMAGE_H
 
 #include <vector>
 
@@ -9,7 +9,7 @@
 
 namespace lv {
 
-class Image {
+class Metal_Image {
 public:
     uint8_t frameCount = 0;
 
@@ -17,8 +17,9 @@ public:
 
     MTL::PixelFormat format;
     MTL::TextureUsage usage = 0;
-    MTL::StorageMode storageMode = MTL::StorageModePrivate;
+    LvImageAspect aspectMask = 0;
     MTL::TextureType viewType = MTL::TextureType2D;
+    MTL::StorageMode memoryProperties = MTL::StorageModePrivate;
     uint16_t layerCount = 1;
     uint16_t mipCount = 1;
 

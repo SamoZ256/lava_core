@@ -1,20 +1,20 @@
-#include "lvcore/core/sampler.hpp"
+#include "vulkan/lvcore/core/sampler.hpp"
 
-#include "lvcore/core/device.hpp"
+#include "vulkan/lvcore/core/device.hpp"
 
 namespace lv {
 
-void Sampler::init() {
+void Vulkan_Sampler::init() {
     //float maxLod = float(imageView->mipCount == -1 ? imageView->image->mipCount : imageView->mipCount) - 1.0f;
-    ImageHelper::createImageSampler(sampler, filter, (VkSamplerAddressMode)addressMode, (compareEnable ? compareOp : VK_COMPARE_OP_MAX_ENUM), minLod, maxLod);
+    Vulkan_ImageHelper::createImageSampler(sampler, filter, (VkSamplerAddressMode)addressMode, (compareEnable ? compareOp : VK_COMPARE_OP_MAX_ENUM), minLod, maxLod);
 }
 
-void Sampler::destroy() {
-    vkDestroySampler(g_device->device(), sampler, nullptr);
+void Vulkan_Sampler::destroy() {
+    vkDestroySampler(g_vulkan_device->device(), sampler, nullptr);
 }
 
-ImageInfo Sampler::descriptorInfo(ImageView& imageView, VkImageLayout imageLayout) {
-    ImageInfo info;
+Vulkan_ImageInfo Vulkan_Sampler::descriptorInfo(Vulkan_ImageView& imageView, VkImageLayout imageLayout) {
+    Vulkan_ImageInfo info;
     info.infos.resize(imageView.imageViews.size());
     for (uint8_t i = 0; i < info.infos.size(); i++) {
         info.infos[i].imageLayout = imageLayout;

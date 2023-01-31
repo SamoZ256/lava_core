@@ -1,16 +1,16 @@
-#include "lvcore/core/viewport.hpp"
+#include "vulkan/lvcore/core/viewport.hpp"
 
-#include "lvcore/core/swap_chain.hpp"
+#include "vulkan/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
-Viewport::Viewport(int32_t x, int32_t y, uint32_t width, uint32_t height) {
+Vulkan_Viewport::Vulkan_Viewport(int32_t x, int32_t y, uint32_t width, uint32_t height) {
 	setViewport(x, y, width, height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 }
 
-void Viewport::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) {
+void Vulkan_Viewport::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) {
 	uint32_t trueTotalWidth = (totalWidth == 0 ? width : totalWidth);
 	uint32_t trueTotalHeight = (totalHeight == 0 ? height : totalHeight);
 	//height = std::min(height, trueTotalHeight - y);
@@ -38,9 +38,9 @@ void Viewport::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height
 	scissor.offset.y = std::max(scissor.offset.y, 0);
 }
 
-void Viewport::bind() {
-	vkCmdSetViewport(g_swapChain->getActiveCommandBuffer(), 0, 1, &viewport);
-	vkCmdSetScissor(g_swapChain->getActiveCommandBuffer(), 0, 1, &scissor);
+void Vulkan_Viewport::bind() {
+	vkCmdSetViewport(g_vulkan_swapChain->getActiveCommandBuffer(), 0, 1, &viewport);
+	vkCmdSetScissor(g_vulkan_swapChain->getActiveCommandBuffer(), 0, 1, &scissor);
 }
 
 } //namespace lv

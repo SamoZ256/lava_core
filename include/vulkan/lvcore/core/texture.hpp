@@ -1,5 +1,5 @@
-#ifndef LV_TEXTURE_H
-#define LV_TEXTURE_H
+#ifndef LV_VULKAN_TEXTURE_H
+#define LV_VULKAN_TEXTURE_H
 
 #include <cassert>
 #include <stdexcept>
@@ -19,12 +19,12 @@ struct TextureData {
 };
 */
 
-class Texture {
+class Vulkan_Texture {
 public:
-    Image image;
+    Vulkan_Image image;
     //VmaAllocation allocation;
-    ImageView imageView;
-    Sampler sampler;
+    Vulkan_ImageView imageView;
+    Vulkan_Sampler sampler;
 
     //VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
     VkFilter filter = VK_FILTER_LINEAR;

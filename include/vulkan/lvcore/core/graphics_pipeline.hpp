@@ -1,5 +1,5 @@
-#ifndef LV_GRAPHICS_PIPELINE_H
-#define LV_GRAPHICS_PIPELINE_H
+#ifndef LV_VULKAN_GRAPHICS_PIPELINE_H
+#define LV_VULKAN_GRAPHICS_PIPELINE_H
 
 #include <cassert>
 
@@ -10,7 +10,7 @@
 
 namespace lv {
 
-struct PipelineConfigInfo {
+struct Vulkan_PipelineConfigInfo {
     VkPipelineViewportStateCreateInfo viewportInfo{};
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
     VkPipelineRasterizationStateCreateInfo rasterizationInfo{};
@@ -25,32 +25,31 @@ struct PipelineConfigInfo {
     uint32_t subpass = 0;
 };
 
-struct GraphicsPipelineConfig {
-    std::vector<unsigned int> blends = {VK_FALSE};
+struct Vulkan_GraphicsPipelineConfig {
     VkCullModeFlagBits cullMode = VK_CULL_MODE_NONE;
     unsigned int depthTestEnable = VK_FALSE;
     unsigned int depthWriteEnable = VK_TRUE;
     VkCompareOp depthOp = VK_COMPARE_OP_LESS;
 };
 
-struct GraphicsPipelineCreateInfo {
-    ShaderModule* vertexShaderModule;
-    ShaderModule* fragmentShaderModule;
-    PipelineLayout* pipelineLayout;
-    RenderPass* renderPass;
+struct Vulkan_GraphicsPipelineCreateInfo {
+    Vulkan_ShaderModule* vertexShaderModule;
+    Vulkan_ShaderModule* fragmentShaderModule;
+    Vulkan_PipelineLayout* pipelineLayout;
+    Vulkan_RenderPass* renderPass;
 
-    VertexDescriptor* vertexDescriptor = nullptr;
+    Vulkan_VertexDescriptor* vertexDescriptor = nullptr;
     //std::vector<VkPushConstantRange> pushConstantRanges;
 
-    GraphicsPipelineConfig config;
+    Vulkan_GraphicsPipelineConfig config;
 };
 
-class GraphicsPipeline {
+class Vulkan_GraphicsPipeline {
 public:
     VkPipeline graphicsPipeline;
     //VkPipelineLayout pipelineLayout;
     
-    PipelineLayout& pipelineLayout;
+    Vulkan_PipelineLayout& pipelineLayout;
     //ShaderModule geometryShaderModule;
 
     //VkPushConstantRange* pushConstantRanges;
@@ -58,7 +57,7 @@ public:
 
     //bool geometryShader = false;
 
-    GraphicsPipeline(GraphicsPipelineCreateInfo& createInfo);
+    Vulkan_GraphicsPipeline(Vulkan_GraphicsPipelineCreateInfo& createInfo);
 
     void destroy();
 
@@ -68,7 +67,7 @@ public:
 
     void bind();
 
-    static PipelineConfigInfo defaultPipelineConfigInfo(GraphicsPipelineConfig& config, uint8_t colorAttachmentCount);
+    static Vulkan_PipelineConfigInfo defaultPipelineConfigInfo(Vulkan_GraphicsPipelineConfig& config, Vulkan_GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo);
 };
 
 } //namespace lv

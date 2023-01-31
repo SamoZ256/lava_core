@@ -1,5 +1,5 @@
-#ifndef LV_GRAPHICS_PIPELINE_H
-#define LV_GRAPHICS_PIPELINE_H
+#ifndef LV_METAL_GRAPHICS_PIPELINE_H
+#define LV_METAL_GRAPHICS_PIPELINE_H
 
 #include "shader_module.hpp"
 #include "framebuffer.hpp"
@@ -7,32 +7,31 @@
 
 namespace lv {
 
-struct GraphicsPipelineConfig {
-    std::vector<bool> blends = {false};
+struct Metal_GraphicsPipelineConfig {
     MTL::CullMode cullMode = MTL::CullModeNone;
     bool depthTestEnable = false;
     bool depthWriteEnable = true;
     MTL::CompareFunction depthOp = MTL::CompareFunctionLess;
 };
 
-struct GraphicsPipelineCreateInfo {
-    ShaderModule* vertexShaderModule;
-    ShaderModule* fragmentShaderModule;
-    Framebuffer* framebuffer = nullptr;
+struct Metal_GraphicsPipelineCreateInfo {
+    Metal_ShaderModule* vertexShaderModule;
+    Metal_ShaderModule* fragmentShaderModule;
+    Metal_RenderPass* renderPass = nullptr;
 
-    VertexDescriptor* vertexDescriptor = nullptr;
+    Metal_VertexDescriptor* vertexDescriptor = nullptr;
 
-    GraphicsPipelineConfig config;
+    Metal_GraphicsPipelineConfig config;
 };
 
-class GraphicsPipeline {
+class Metal_GraphicsPipeline {
 public:
     MTL::RenderPipelineState* graphicsPipeline;
 
     MTL::DepthStencilState* depthStencilState;
     MTL::CullMode cullMode;
 
-    GraphicsPipeline(GraphicsPipelineCreateInfo& createInfo);
+    Metal_GraphicsPipeline(Metal_GraphicsPipelineCreateInfo& createInfo);
 
     void destroy() { graphicsPipeline->release(); }
 

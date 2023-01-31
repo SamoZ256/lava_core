@@ -1,5 +1,5 @@
-#ifndef LV_COMMON_H
-#define LV_COMMON_H
+#ifndef LV_METAL_COMMON_H
+#define LV_METAL_COMMON_H
 
 #include <stdlib.h>
 

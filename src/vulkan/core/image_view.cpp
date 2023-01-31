@@ -1,36 +1,40 @@
-#include "lvcore/core/image_view.hpp"
+#include "vulkan/lvcore/core/image_view.hpp"
 
-#include "lvcore/core/device.hpp"
-#include "lvcore/core/swap_chain.hpp"
+#include "vulkan/lvcore/core/device.hpp"
+#include "vulkan/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
-void ImageView::init(Image* aImage) {
-    if (frameCount == 0) frameCount = g_swapChain->maxFramesInFlight;
+void Vulkan_ImageView::init(Vulkan_Image* aImage) {
+    if (frameCount == 0) frameCount = aImage->frameCount;
 
     image = aImage;
 
-    uint8_t trueLayerCount = layerCount == -1 ? image->layerCount : layerCount;
-    uint8_t trueMipCount = mipCount == -1 ? image->mipCount : mipCount;
+    if (viewType == VK_IMAGE_VIEW_TYPE_MAX_ENUM) viewType = image->viewType;
+
+    if (layerCount == 0)
+        layerCount = image->layerCount;
+    if (mipCount == 0)
+        mipCount = image->mipCount;
 
     imageViews.resize(frameCount);
     //std::cout << (int)baseLayer << " : " << (int)trueLayerCount << std::endl;
 
     for (uint8_t i = 0; i < frameCount; i++) {
         //Image view
-        ImageHelper::createImageView(imageViews[i], image->images[i], image->format, image->aspectMask, viewType, baseLayer, trueLayerCount, baseMip, trueMipCount);
+        Vulkan_ImageHelper::createImageView(imageViews[i], image->images[i], image->format, image->aspectMask, viewType, baseLayer, layerCount, baseMip, mipCount);
         //std::cout << (int)trueMipCount << " : " << (int)baseMip << std::endl;
     }
 }
 
-void ImageView::destroy() {
+void Vulkan_ImageView::destroy() {
     for (uint8_t i = 0; i < imageViews.size(); i++) {
-        vkDestroyImageView(g_device->device(), imageViews[i], nullptr);
+        vkDestroyImageView(g_vulkan_device->device(), imageViews[i], nullptr);
     }
 }
 
-ImageInfo ImageView::descriptorInfo(VkDescriptorType descriptorType, VkImageLayout imageLayout) {
-    ImageInfo info;
+Vulkan_ImageInfo Vulkan_ImageView::descriptorInfo(VkDescriptorType descriptorType, VkImageLayout imageLayout) {
+    Vulkan_ImageInfo info;
     info.infos.resize(imageViews.size());
     for (uint8_t i = 0; i < info.infos.size(); i++) {
         info.infos[i].imageLayout = imageLayout;

@@ -1,24 +1,24 @@
-#ifndef LV_ALLOCATOR_H
-#define LV_ALLOCATOR_H
+#ifndef LV_VULKAN_ALLOCATOR_H
+#define LV_VULKAN_ALLOCATOR_H
 
 #include <vma/vk_mem_alloc.h>
 
 namespace lv {
 
-struct AllocatorCreateInfo {
+struct Vulkan_AllocatorCreateInfo {
     uint32_t vulkanVersion = VK_API_VERSION_1_1;
 };
 
-class Allocator {
+class Vulkan_Allocator {
 public:
     VmaAllocator allocator;
 
-    Allocator(AllocatorCreateInfo& createInfo);
+    Vulkan_Allocator(Vulkan_AllocatorCreateInfo& createInfo);
 
     void destroy();
 };
 
-extern Allocator* g_allocator;
+extern Vulkan_Allocator* g_vulkan_allocator;
 
 //Implementation
 /*

@@ -16,30 +16,15 @@ add_compile_options(
 
 #set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION 1)
 
-option(BACKEND_VULKAN "Build using vulkan backend" OFF)
-option(BACKEND_METAL "Build using metal backend" OFF)
-
-set(BACKEND)
-
-if (BACKEND_VULKAN)
-    message("Building using vulkan backend")
-
-    set(BACKEND vulkan)
-
-    #set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
-
+if (APPLE)
     include_directories(
-        "external/vma/include"
+        "/Users/samuliak/VulkanSDK/1.3.236.0/macOS/include"
     )
+elseif (WIN32)
+    find_package(Vulkan REQUIRED)
+endif ()
 
-    if (APPLE)
-        include_directories(
-            "/Users/samuliak/VulkanSDK/1.3.236.0/macOS/include"
-        )
-    elseif (WIN32)
-        find_package(Vulkan REQUIRED)
-    endif ()
-elseif (BACKEND_METAL)
+if (APPLE)
     message("Building using metal backend")
 
     set(BACKEND metal)
@@ -49,19 +34,22 @@ elseif (BACKEND_METAL)
     )
 endif ()
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/${BACKEND})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 
 include_directories(
-    "/Users/samuliak/Documents/lvnd/include"
+    "/Users/samuliak/Documents/lava_window/include"
+    "external/vma/include"
     "external/stb/include"
-    "include/${BACKEND}"
     "include"
 )
 
 file(GLOB src
-    "src/${BACKEND}/core/*.cpp"
-    "src/${BACKEND}/libraries/*.cpp"
-    "src/${BACKEND}/window/*.cpp"
+    "src/vulkan/core/*.cpp"
+    "src/vulkan/libraries/*.cpp"
+    "src/vulkan/window/*.cpp"
+    "src/metal/core/*.cpp"
+    "src/metal/libraries/*.cpp"
+    "src/metal/window/*.cpp"
     "src/filesystem/*.cpp"
     "src/libraries/*.cpp"
 )
@@ -74,7 +62,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION 1)
 find_library(
     LVND_LIB
     NAMES lvnd liblvnd
-    HINTS "/Users/samuliak/Documents/lvnd/lib/${BACKEND}"
+    HINTS "/Users/samuliak/Documents/lava_window/lib"
     NO_DEFAULT_PATH
 )
 
@@ -82,19 +70,19 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${LVND_LIB}
 )
 
-if (BACKEND_VULKAN)
-    if (APPLE)
-        find_library (
-            Vulkan_LIBRARIES
-            NAMES vulkan libvulkan # what to look for
-            HINTS "/Users/samuliak/VulkanSDK/1.3.236.0/macOS/lib" # where to look
-        )
-    endif ()
-
-    target_link_libraries(${PROJECT_NAME} PUBLIC
-        ${Vulkan_LIBRARIES}
+if (APPLE)
+    find_library (
+        Vulkan_LIBRARIES
+        NAMES vulkan libvulkan # what to look for
+        HINTS "/Users/samuliak/VulkanSDK/1.3.236.0/macOS/lib" # where to look
     )
-elseif (BACKEND_METAL)
+endif ()
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    ${Vulkan_LIBRARIES}
+)
+
+if (APPLE)
     target_sources(${PROJECT_NAME} PRIVATE
         src/metal/core/dispatch_data_bridge.mm
     )

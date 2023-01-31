@@ -1,32 +1,32 @@
-#include "lvcore/core/descriptor_set.hpp"
+#include "vulkan/lvcore/core/descriptor_set.hpp"
 
-#include "lvcore/core/common.hpp"
+#include "vulkan/lvcore/core/common.hpp"
 
-#include "lvcore/core/device.hpp"
-#include "lvcore/core/swap_chain.hpp"
+#include "vulkan/lvcore/core/device.hpp"
+#include "vulkan/lvcore/core/swap_chain.hpp"
 //#include "Core/Renderer.hpp"
 
 namespace lv {
 
-DescriptorPool* g_descriptorPool = nullptr;
+Vulkan_DescriptorPool* g_vulkan_descriptorPool = nullptr;
 
 // *************** Descriptor Set Layout *********************
 
-void DescriptorSetLayout::init() {
+void Vulkan_DescriptorSetLayout::init() {
 	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
 	descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 	descriptorSetLayoutInfo.pBindings = bindings.data();
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(g_device->device(), &descriptorSetLayoutInfo, nullptr, &descriptorSetLayout))
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(g_vulkan_device->device(), &descriptorSetLayoutInfo, nullptr, &descriptorSetLayout))
 }
 
-void DescriptorSetLayout::destroy() {
-	vkDestroyDescriptorSetLayout(g_device->device(), descriptorSetLayout, nullptr);
+void Vulkan_DescriptorSetLayout::destroy() {
+	vkDestroyDescriptorSetLayout(g_vulkan_device->device(), descriptorSetLayout, nullptr);
 	//descriptorSetLayout = VK_NULL_HANDLE;
 }
 
-void DescriptorSetLayout::addBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags) {
+void Vulkan_DescriptorSetLayout::addBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags) {
 	//assert(bindings.count(binding) == 0 && "Binding already in use");
 	VkDescriptorSetLayoutBinding layoutBinding{};
 	layoutBinding.binding = binding;
@@ -38,20 +38,20 @@ void DescriptorSetLayout::addBinding(uint32_t binding, VkDescriptorType descript
 
 // *************** Descriptor Pool *********************
 
-DescriptorPool::DescriptorPool(DescriptorPoolCreateInfo& createInfo) {
+Vulkan_DescriptorPool::Vulkan_DescriptorPool(Vulkan_DescriptorPoolCreateInfo& createInfo) {
 	poolSizesBegin = createInfo.poolSizes;
 	poolSizes = poolSizesBegin;
 
 	for (const auto& [key, value] : poolSizes) {
-		poolSizesVec.push_back({key, (unsigned)value * g_swapChain->maxFramesInFlight});
+		poolSizesVec.push_back({key, (unsigned)value * g_vulkan_swapChain->maxFramesInFlight});
 	}
 
 	init();
 
-	g_descriptorPool = this;
+	g_vulkan_descriptorPool = this;
 }
 
-void DescriptorPool::init() {
+void Vulkan_DescriptorPool::init() {
 	VkDescriptorPoolCreateInfo descriptorPoolInfo{};
 	descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
@@ -59,14 +59,14 @@ void DescriptorPool::init() {
 	descriptorPoolInfo.maxSets = maxSets;
 	descriptorPoolInfo.flags = poolFlags;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(g_device->device(), &descriptorPoolInfo, nullptr, &descriptorPool))
+	VK_CHECK_RESULT(vkCreateDescriptorPool(g_vulkan_device->device(), &descriptorPoolInfo, nullptr, &descriptorPool))
 }
 
-void DescriptorPool::destroy() {
-  	vkDestroyDescriptorPool(g_device->device(), descriptorPool, nullptr);
+void Vulkan_DescriptorPool::destroy() {
+  	vkDestroyDescriptorPool(g_vulkan_device->device(), descriptorPool, nullptr);
 }
 
-void DescriptorPool::allocateDescriptorSet(const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet& descriptor) const {
+void Vulkan_DescriptorPool::allocateDescriptorSet(const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet& descriptor) const {
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = descriptorPool;
@@ -75,13 +75,13 @@ void DescriptorPool::allocateDescriptorSet(const VkDescriptorSetLayout descripto
 
 	// Might want to create a "DescriptorPoolManager" class that handles this case, and builds
 	// a new pool whenever an old pool fills up. But this is beyond our current scope
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(g_device->device(), &allocInfo, &descriptor))
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(g_vulkan_device->device(), &allocInfo, &descriptor))
 }
 
 /*
 void DescriptorPool::freeDescriptorSets(std::vector<VkDescriptorSet> &descriptors) const {
   vkFreeDescriptorSets(
-      g_device->device(),
+      g_metal_device->device(),
       descriptorPool,
       static_cast<uint32_t>(descriptors.size()),
       descriptors.data());
@@ -90,7 +90,7 @@ void DescriptorPool::freeDescriptorSets(std::vector<VkDescriptorSet> &descriptor
 
 /*
 void DescriptorPool::resetPool() {
-  vkResetDescriptorPool(g_device->device(), descriptorPool, 0);
+  vkResetDescriptorPool(g_metal_device->device(), descriptorPool, 0);
 }
 */
 
@@ -100,7 +100,7 @@ void DescriptorPool::addPoolSize(VkDescriptorType descriptorType, uint32_t count
 }
 */
 
-void DescriptorPool::recreate() {
+void Vulkan_DescriptorPool::recreate() {
 	oldPools.push_back(descriptorPool);
 	//descriptorPool = VK_NULL_HANDLE;
 	init();
@@ -109,7 +109,7 @@ void DescriptorPool::recreate() {
 
 // *************** Descriptor Writer *********************
 
-void DescriptorWriter::writeBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo) {
+void Vulkan_DescriptorWriter::writeBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo) {
 	//assert(setLayout.bindings.count(binding) == 1 && "Layout does not contain specified binding");
 
 	auto &bindingDescription = pipelineLayout.descriptorSetLayouts[layoutIndex].bindings[binding];
@@ -126,7 +126,7 @@ void DescriptorWriter::writeBuffer(uint32_t binding, VkDescriptorBufferInfo *buf
 	writes.push_back(write);
 }
 
-void DescriptorWriter::writeImage(uint32_t binding, VkDescriptorImageInfo *imageInfo) {
+void Vulkan_DescriptorWriter::writeImage(uint32_t binding, VkDescriptorImageInfo *imageInfo) {
 	//assert(setLayout.bindings.count(binding) == 1 && "Layout does not contain specified binding");
 
 	auto &bindingDescription = pipelineLayout.descriptorSetLayouts[layoutIndex].bindings[binding];
@@ -143,17 +143,17 @@ void DescriptorWriter::writeImage(uint32_t binding, VkDescriptorImageInfo *image
 	writes.push_back(write);
 }
 
-void DescriptorWriter::build(VkDescriptorSet &set) {
-	g_descriptorPool->allocateDescriptorSet(pipelineLayout.descriptorSetLayouts[layoutIndex].descriptorSetLayout, set);
+void Vulkan_DescriptorWriter::build(VkDescriptorSet &set) {
+	g_vulkan_descriptorPool->allocateDescriptorSet(pipelineLayout.descriptorSetLayouts[layoutIndex].descriptorSetLayout, set);
 	overwrite(set);
 }
 
-void DescriptorWriter::overwrite(VkDescriptorSet &set) {
+void Vulkan_DescriptorWriter::overwrite(VkDescriptorSet &set) {
 	for (auto &write : writes) {
 		write.dstSet = set;
 	}
 	//std::cout << "Writes: " << writes.size() << std::endl;
-	vkUpdateDescriptorSets(g_device->device(), writes.size(), writes.data(), 0, nullptr);
+	vkUpdateDescriptorSets(g_vulkan_device->device(), writes.size(), writes.data(), 0, nullptr);
 }
 
 // *************** Descriptor Set *********************
@@ -164,14 +164,14 @@ void DescriptorSet::destroy() {
 }
 */
 
-void DescriptorSet::init() {
-	if (frameCount == 0) frameCount = g_swapChain->maxFramesInFlight;
+void Vulkan_DescriptorSet::init() {
+	if (frameCount == 0) frameCount = g_vulkan_swapChain->maxFramesInFlight;
 
 	registerDescriptorSet();
 	
 	descriptorSets.resize(frameCount);
 	for (uint8_t i = 0; i < descriptorSets.size(); i++) {
-		DescriptorWriter writer(pipelineLayout, layoutIndex);
+		Vulkan_DescriptorWriter writer(pipelineLayout, layoutIndex);
 		for (uint8_t buff = 0; buff < bufferInfos.size(); buff++) {
 			uint8_t frameIndex = i < bufferInfos[buff].infos.size() ? i : 0;
 			writer.writeBuffer(bufferBindingIndices[buff], &bufferInfos[buff].infos[frameIndex]);
@@ -185,13 +185,13 @@ void DescriptorSet::init() {
 	}
 
 	//std::cout << "Setting pool start" << std::endl;
-	pool = &g_descriptorPool->descriptorPool;
+	pool = &g_vulkan_descriptorPool->descriptorPool;
 	//std::cout << "Setting pool end" << std::endl;
 }
 
-void DescriptorSet::destroy() {
+void Vulkan_DescriptorSet::destroy() {
 	//g_descriptorManager->descriptorPool.freeDescriptorSets(descriptorSets);
-	vkFreeDescriptorSets(g_device->device(), *pool, descriptorSets.size(), descriptorSets.data());
+	vkFreeDescriptorSets(g_vulkan_device->device(), *pool, descriptorSets.size(), descriptorSets.data());
 	bufferInfos.clear();
 	bufferBindingIndices.clear();
 	imageInfos.clear();
@@ -199,7 +199,7 @@ void DescriptorSet::destroy() {
 	descriptorTypes.clear();
 }
 
-void DescriptorSet::addBinding(BufferInfo bufferInfo, uint32_t binding) {
+void Vulkan_DescriptorSet::addBinding(Vulkan_BufferInfo bufferInfo, uint32_t binding) {
     //g_descriptorManager->descriptorPool.addPoolSize(descriptorType, SwapChain::MAX_FRAMES_IN_FLIGHT);
 	for (uint8_t i = 0; i < frameCount; i++)
     	descriptorTypes.push_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
@@ -207,7 +207,7 @@ void DescriptorSet::addBinding(BufferInfo bufferInfo, uint32_t binding) {
     bufferInfos.push_back(bufferInfo);
 }
 
-void DescriptorSet::addBinding(ImageInfo imageInfo, uint32_t binding) {
+void Vulkan_DescriptorSet::addBinding(Vulkan_ImageInfo imageInfo, uint32_t binding) {
     //g_descriptorManager->descriptorPool.addPoolSize(descriptorType, SwapChain::MAX_FRAMES_IN_FLIGHT);
 	for (uint8_t i = 0; i < frameCount; i++)
     	descriptorTypes.push_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
@@ -215,15 +215,15 @@ void DescriptorSet::addBinding(ImageInfo imageInfo, uint32_t binding) {
     imageInfos.push_back(imageInfo);
 }
 
-void DescriptorSet::bind() {
-  	vkCmdBindDescriptorSets(g_swapChain->getActiveCommandBuffer(), g_swapChain->pipelineBindPoint, pipelineLayout.pipelineLayout, layoutIndex, 1, &descriptorSets[g_swapChain->imageIndex], 0, nullptr);
+void Vulkan_DescriptorSet::bind() {
+  	vkCmdBindDescriptorSets(g_vulkan_swapChain->getActiveCommandBuffer(), g_vulkan_swapChain->pipelineBindPoint, pipelineLayout.pipelineLayout, layoutIndex, 1, &descriptorSets[g_vulkan_swapChain->imageIndex], 0, nullptr);
 }
 
-bool DescriptorSet::registerDescriptor(VkDescriptorType descriptorType) {
-	uint16_t& count = g_descriptorPool->poolSizes[descriptorType];
+bool Vulkan_DescriptorSet::registerDescriptor(VkDescriptorType descriptorType) {
+	uint16_t& count = g_vulkan_descriptorPool->poolSizes[descriptorType];
 	if (count == 0) {
-		g_descriptorPool->recreate();
-		count = g_descriptorPool->poolSizes[descriptorType];
+		g_vulkan_descriptorPool->recreate();
+		count = g_vulkan_descriptorPool->poolSizes[descriptorType];
 		count -= 1;
 		return false;
 	}
@@ -233,7 +233,7 @@ bool DescriptorSet::registerDescriptor(VkDescriptorType descriptorType) {
 	return true;
 }
 
-void DescriptorSet::registerDescriptorSet() {
+void Vulkan_DescriptorSet::registerDescriptorSet() {
 	while (true) {
 		bool allocated = true;
 		for (auto& descriptorType : descriptorTypes) {
@@ -247,7 +247,7 @@ void DescriptorSet::registerDescriptorSet() {
 
 // *************** Descriptor Layouts *********************
 
-void PipelineLayout::init() {
+void Vulkan_PipelineLayout::init() {
 	for (uint8_t i = 0; i < descriptorSetLayouts.size(); i++)
 		descriptorSetLayouts[i].init();
 
@@ -263,13 +263,13 @@ void PipelineLayout::init() {
 	pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
 	pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(g_device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout))
+	VK_CHECK_RESULT(vkCreatePipelineLayout(g_vulkan_device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout))
 }
 
-void PipelineLayout::destroy() {
+void Vulkan_PipelineLayout::destroy() {
 	for (uint8_t i = 0; i < descriptorSetLayouts.size(); i++)
 		descriptorSetLayouts[i].destroy();
-	vkDestroyPipelineLayout(g_device->device(), pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(g_vulkan_device->device(), pipelineLayout, nullptr);
 	//std::cout << "PIPELINE LAYOUT DESTROYED" << std::endl;
 }
 

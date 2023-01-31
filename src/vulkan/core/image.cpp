@@ -1,13 +1,13 @@
-#include "lvcore/core/image.hpp"
+#include "vulkan/lvcore/core/image.hpp"
 
-#include "lvcore/core/allocator.hpp"
-#include "lvcore/core/device.hpp"
-#include "lvcore/core/swap_chain.hpp"
+#include "vulkan/lvcore/core/allocator.hpp"
+#include "vulkan/lvcore/core/device.hpp"
+#include "vulkan/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
-void Image::init(uint16_t aWidth, uint16_t aHeight) {
-    if (frameCount == 0) frameCount = g_swapChain->maxFramesInFlight;
+void Vulkan_Image::init(uint16_t aWidth, uint16_t aHeight) {
+    if (frameCount == 0) frameCount = g_vulkan_swapChain->maxFramesInFlight;
 
     width = aWidth;
     height = aHeight;
@@ -18,29 +18,29 @@ void Image::init(uint16_t aWidth, uint16_t aHeight) {
     allocations.resize(frameCount);
     for (uint8_t i = 0; i < frameCount; i++) {
         //Creating image
-        allocations[i] = ImageHelper::createImage((uint16_t)width, (uint16_t)height, format, VK_IMAGE_TILING_OPTIMAL, usage, VMA_MEMORY_USAGE_GPU_ONLY, images[i], nullptr, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, layerCount, mipCount, allocationFlags, flags);
+        allocations[i] = Vulkan_ImageHelper::createImage((uint16_t)width, (uint16_t)height, format, VK_IMAGE_TILING_OPTIMAL, usage, images[i], nullptr, memoryProperties, layerCount, mipCount, allocationFlags, flags);
         //ImageBuffer::transitionImageLayout(images[i], format, VK_IMAGE_LAYOUT_UNDEFINED, dstLayout, aspectMask);
     }
 }
 
-void Image::destroy() {
+void Vulkan_Image::destroy() {
     for (uint8_t i = 0; i < frameCount; i++)
-        vmaDestroyImage(g_allocator->allocator, images[i], allocations[i]);
+        vmaDestroyImage(g_vulkan_allocator->allocator, images[i], allocations[i]);
 }
 
-void Image::transitionLayout(VkImageLayout srcLayout, VkImageLayout dstLayout) {
+void Vulkan_Image::transitionLayout(VkImageLayout srcLayout, VkImageLayout dstLayout) {
     for (uint8_t i = 0; i < images.size(); i++) {
-        ImageHelper::transitionImageLayout(images[i], format, srcLayout, dstLayout, aspectMask, layerCount, mipCount);
+        Vulkan_ImageHelper::transitionImageLayout(images[i], format, srcLayout, dstLayout, aspectMask, layerCount, mipCount);
     }
 }
 
-void Image::resize(uint16_t width, uint16_t height) {
+void Vulkan_Image::resize(uint16_t width, uint16_t height) {
     destroy();
     init(width, height);
 }
 
-void Image::generateMipmaps() {
-    VkCommandBuffer commandBuffer = g_device->beginSingleTimeCommands();
+void Vulkan_Image::generateMipmaps() {
+    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands();
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -107,7 +107,7 @@ void Image::generateMipmaps() {
         }
     }
 
-    g_device->endSingleTimeCommands(commandBuffer);
+    g_vulkan_device->endSingleTimeCommands(commandBuffer);
 }
 
 } //namespace lv

@@ -1,41 +1,41 @@
-#include "lvcore/core/device.hpp"
+#include "vulkan/lvcore/core/device.hpp"
 
-#include "lvcore/core/common.hpp"
+#include "vulkan/lvcore/core/common.hpp"
 
 namespace lv {
 
 //Implementation
-Device* g_device = nullptr;
+Vulkan_Device* g_vulkan_device = nullptr;
 
 // class member functions
-Device::Device(DeviceCreateInfo& createInfo) {
+Vulkan_Device::Vulkan_Device(Vulkan_DeviceCreateInfo& createInfo) {
 	//window.createWindowSurface(instance, &surface_);
-	VK_CHECK_RESULT(lvndVulkanCreateWindowSurface(createInfo.window, g_instance->instance, &surface_))
+	VK_CHECK_RESULT(lvndVulkanCreateWindowSurface(createInfo.window, g_vulkan_instance->instance, &surface_))
 	pickPhysicalDevice();
 	createLogicalDevice();
 	createCommandPool();
 
-	g_device = this;
+	g_vulkan_device = this;
 }
 
-void Device::destroy() {
+void Vulkan_Device::destroy() {
     std::cout << "Destroying device" << std::endl;
 	vkDestroyCommandPool(device_, commandPool, nullptr);
 	vkDestroyDevice(device_, nullptr);
 
-	vkDestroySurfaceKHR(g_instance->instance, surface_, nullptr);
+	vkDestroySurfaceKHR(g_vulkan_instance->instance, surface_, nullptr);
     std::cout << "Destroyed device" << std::endl;
 }
 
-void Device::pickPhysicalDevice() {
+void Vulkan_Device::pickPhysicalDevice() {
 	uint32_t deviceCount = 0;
-	vkEnumeratePhysicalDevices(g_instance->instance, &deviceCount, nullptr);
+	vkEnumeratePhysicalDevices(g_vulkan_instance->instance, &deviceCount, nullptr);
 	if (deviceCount == 0) {
 		throw std::runtime_error("Failed to find GPUs with Vulkan support");
 	}
 	std::cout << "Device count: " << deviceCount << std::endl;
 	std::vector<VkPhysicalDevice> devices(deviceCount);
-	vkEnumeratePhysicalDevices(g_instance->instance, &deviceCount, devices.data());
+	vkEnumeratePhysicalDevices(g_vulkan_instance->instance, &deviceCount, devices.data());
 
 	for (const auto &device : devices) {
 		if (isDeviceSuitable(device)) {
@@ -53,7 +53,7 @@ void Device::pickPhysicalDevice() {
 	std::cout << "Max push constants size: " << properties.limits.maxPushConstantsSize << " bytes" << std::endl;
 }
 
-void Device::createLogicalDevice() {
+void Vulkan_Device::createLogicalDevice() {
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -85,9 +85,9 @@ void Device::createLogicalDevice() {
 
 	// might not really be necessary anymore because device specific validation layers
 	// have been deprecated
-	if (g_instance->enableValidationLayers) {
-		createInfo.enabledLayerCount = static_cast<uint32_t>(g_instance->validationLayers.size());
-		createInfo.ppEnabledLayerNames = g_instance->validationLayers.data();
+	if (g_vulkan_instance->enableValidationLayers) {
+		createInfo.enabledLayerCount = static_cast<uint32_t>(g_vulkan_instance->validationLayers.size());
+		createInfo.ppEnabledLayerNames = g_vulkan_instance->validationLayers.data();
 	} else {
 		createInfo.enabledLayerCount = 0;
 	}
@@ -98,7 +98,7 @@ void Device::createLogicalDevice() {
 	vkGetDeviceQueue(device_, indices.presentFamily, 0, &presentQueue_);
 }
 
-void Device::createCommandPool() {
+void Vulkan_Device::createCommandPool() {
 	QueueFamilyIndices queueFamilyIndices = findPhysicalQueueFamilies();
 
 	VkCommandPoolCreateInfo poolInfo = {};
@@ -110,7 +110,7 @@ void Device::createCommandPool() {
 	VK_CHECK_RESULT(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool))
 }
 
-bool Device::isDeviceSuitable(VkPhysicalDevice device) {
+bool Vulkan_Device::isDeviceSuitable(VkPhysicalDevice device) {
 	QueueFamilyIndices indices = findQueueFamilies(device);
 
 	bool extensionsSupported = checkDeviceExtensionSupport(device);
@@ -127,7 +127,7 @@ bool Device::isDeviceSuitable(VkPhysicalDevice device) {
 	return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-bool Device::checkDeviceExtensionSupport(VkPhysicalDevice device) {
+bool Vulkan_Device::checkDeviceExtensionSupport(VkPhysicalDevice device) {
 	uint32_t extensionCount;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
@@ -143,7 +143,7 @@ bool Device::checkDeviceExtensionSupport(VkPhysicalDevice device) {
 	return requiredExtensions.empty();
 }
 
-QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) {
+QueueFamilyIndices Vulkan_Device::findQueueFamilies(VkPhysicalDevice device) {
 	QueueFamilyIndices indices;
 
 	uint32_t queueFamilyCount = 0;
@@ -174,7 +174,7 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) {
 	return indices;
 }
 
-SwapChainSupportDetails Device::querySwapChainSupport(VkPhysicalDevice device) {
+SwapChainSupportDetails Vulkan_Device::querySwapChainSupport(VkPhysicalDevice device) {
 	SwapChainSupportDetails details;
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface_, &details.capabilities);
 
@@ -200,7 +200,7 @@ SwapChainSupportDetails Device::querySwapChainSupport(VkPhysicalDevice device) {
 	return details;
 }
 
-VkFormat Device::findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+VkFormat Vulkan_Device::findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
 	for (VkFormat format : candidates) {
 		VkFormatProperties props;
 		vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
@@ -214,7 +214,7 @@ VkFormat Device::findSupportedFormat(const std::vector<VkFormat> &candidates, Vk
 	throw std::runtime_error("Failed to find supported format");
 }
 
-uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t Vulkan_Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 	VkPhysicalDeviceMemoryProperties memProperties;
 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
@@ -226,7 +226,7 @@ uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags prope
 	throw std::runtime_error("Failed to find suitable memory type");
 }
 
-VkCommandBuffer Device::beginSingleTimeCommands() {
+VkCommandBuffer Vulkan_Device::beginSingleTimeCommands() {
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -245,7 +245,7 @@ VkCommandBuffer Device::beginSingleTimeCommands() {
 	return commandBuffer;
 }
 
-void Device::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+void Vulkan_Device::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 	vkEndCommandBuffer(commandBuffer);
 
 	VkSubmitInfo submitInfo{};
@@ -259,7 +259,7 @@ void Device::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 	vkFreeCommandBuffers(device_, commandPool, 1, &commandBuffer);
 }
 
-void Device::createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory) {
+void Vulkan_Device::createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory) {
 	VK_CHECK_RESULT(vkCreateImage(device_, &imageInfo, nullptr, &image))
 
 	VkMemoryRequirements memRequirements;

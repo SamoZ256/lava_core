@@ -1,13 +1,12 @@
-#include "lvcore/core/graphics_pipeline.hpp"
+#include "vulkan/lvcore/core/graphics_pipeline.hpp"
 
-#include "lvcore/core/device.hpp"
-#include "lvcore/core/swap_chain.hpp"
-//#include "Core/Renderer.hpp"
-#include "lvcore/core/descriptor_set.hpp"
+#include "vulkan/lvcore/core/device.hpp"
+#include "vulkan/lvcore/core/swap_chain.hpp"
+#include "vulkan/lvcore/core/descriptor_set.hpp"
 
 namespace lv {
 
-GraphicsPipeline::GraphicsPipeline(GraphicsPipelineCreateInfo& createInfo) : pipelineLayout(*createInfo.pipelineLayout)/*, pushConstantRanges(createInfo.pushConstantRanges.data()), pushConstantRangeCount(createInfo.pushConstantRanges.size())*/ {
+Vulkan_GraphicsPipeline::Vulkan_GraphicsPipeline(Vulkan_GraphicsPipelineCreateInfo& createInfo) : pipelineLayout(*createInfo.pipelineLayout)/*, pushConstantRanges(createInfo.pushConstantRanges.data()), pushConstantRangeCount(createInfo.pushConstantRanges.size())*/ {
     //Available shaders
     //geometryShader = (geometryFilename != nullptr);
     //createPipelineLayout(descriptorSetLayouts);
@@ -17,7 +16,7 @@ GraphicsPipeline::GraphicsPipeline(GraphicsPipelineCreateInfo& createInfo) : pip
     //bool renderPassSet = (createInfo.renderPass != nullptr);
     if (createInfo.renderPass == nullptr)
         throw std::runtime_error("You must specify a valid render pass");
-    PipelineConfigInfo configInfo = defaultPipelineConfigInfo(createInfo.config, createInfo.renderPass->colorAttachmentCount);
+    Vulkan_PipelineConfigInfo configInfo = defaultPipelineConfigInfo(createInfo.config, createInfo);
     //unsigned int depthTest = createInfo.config.depthTest;//(framebufferSet ? (createInfo.framebuffer->depthAttachment == nullptr ? VK_FALSE : VK_TRUE) : VK_TRUE);
     /*
     if (renderPassSet) {
@@ -97,33 +96,33 @@ GraphicsPipeline::GraphicsPipeline(GraphicsPipelineCreateInfo& createInfo) : pip
     pipelineInfo.basePipelineIndex = -1;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-    VK_CHECK_RESULT(vkCreateGraphicsPipelines(g_device->device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline))
+    VK_CHECK_RESULT(vkCreateGraphicsPipelines(g_vulkan_device->device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline))
 }
 
-void GraphicsPipeline::destroy() {
-    //vkDestroyPipelineLayout(g_device->device(), pipelineLayout, nullptr);
-    //vkDestroyShaderModule(g_device->device(), vertexShaderModule.ID, nullptr);
-    //vkDestroyShaderModule(g_device->device(), fragmentShaderModule.ID, nullptr);
-    //if (geometryShader) vkDestroyShaderModule(g_device->device(), geometryShaderModule.ID, nullptr);
-    vkDestroyPipeline(g_device->device(), graphicsPipeline, nullptr);
+void Vulkan_GraphicsPipeline::destroy() {
+    //vkDestroyPipelineLayout(g_metal_device->device(), pipelineLayout, nullptr);
+    //vkDestroyShaderModule(g_metal_device->device(), vertexShaderModule.ID, nullptr);
+    //vkDestroyShaderModule(g_metal_device->device(), fragmentShaderModule.ID, nullptr);
+    //if (geometryShader) vkDestroyShaderModule(g_metal_device->device(), geometryShaderModule.ID, nullptr);
+    vkDestroyPipeline(g_vulkan_device->device(), graphicsPipeline, nullptr);
 }
 
-void GraphicsPipeline::uploadPushConstants(void* data, uint8_t index) {
-    vkCmdPushConstants(g_swapChain->getActiveCommandBuffer(),
+void Vulkan_GraphicsPipeline::uploadPushConstants(void* data, uint8_t index) {
+    vkCmdPushConstants(g_vulkan_swapChain->getActiveCommandBuffer(),
                       pipelineLayout.pipelineLayout,
                       pipelineLayout.pushConstantRanges[index].stageFlags,
                       pipelineLayout.pushConstantRanges[index].offset,
                       pipelineLayout.pushConstantRanges[index].size, data);
 }
 
-void GraphicsPipeline::bind() {
-    vkCmdBindPipeline(g_swapChain->getActiveCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-    g_swapChain->pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    //std::cout << "DEPENDENCY COUNT: " << (int)g_swapChain->activeFramebuffer->renderPass->dependencies.size() << std::endl;
+void Vulkan_GraphicsPipeline::bind() {
+    vkCmdBindPipeline(g_vulkan_swapChain->getActiveCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    g_vulkan_swapChain->pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    //std::cout << "DEPENDENCY COUNT: " << (int)g_metal_swapChain->activeFramebuffer->renderPass->dependencies.size() << std::endl;
 }
 
-PipelineConfigInfo GraphicsPipeline::defaultPipelineConfigInfo(GraphicsPipelineConfig& config, uint8_t colorAttachmentCount) {
-    PipelineConfigInfo configInfo;
+Vulkan_PipelineConfigInfo Vulkan_GraphicsPipeline::defaultPipelineConfigInfo(Vulkan_GraphicsPipelineConfig& config, Vulkan_GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
+    Vulkan_PipelineConfigInfo configInfo;
 
     //Input assembly
     configInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -160,19 +159,21 @@ PipelineConfigInfo GraphicsPipeline::defaultPipelineConfigInfo(GraphicsPipelineC
     configInfo.multisampleInfo.alphaToOneEnable = VK_FALSE;       // Optional
 
     //Color blending (attachment)
-    configInfo.colorBlendAttachments.resize(colorAttachmentCount);
-    for (uint8_t i = 0; i < colorAttachmentCount; i++) {
+    std::vector<Vulkan_RenderPassAttachment>& colorAttachments = graphicsPipelineCreateInfo.renderPass->colorAttachments;
+    configInfo.colorBlendAttachments.resize(colorAttachments.size());
+    for (uint8_t i = 0; i < colorAttachments.size(); i++) {
+        uint8_t index = colorAttachments[i].index;
         //std::cout << "Blending enabled: " << (enabled.blend ? "true" : "false") << std::endl;
-        configInfo.colorBlendAttachments[i].colorWriteMask =
+        configInfo.colorBlendAttachments[index].colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
         VK_COLOR_COMPONENT_A_BIT;
-        configInfo.colorBlendAttachments[i].blendEnable = (i < config.blends.size() ? config.blends[i] : config.blends[0]);
-        configInfo.colorBlendAttachments[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        configInfo.colorBlendAttachments[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        configInfo.colorBlendAttachments[i].colorBlendOp = VK_BLEND_OP_ADD;
-        configInfo.colorBlendAttachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        configInfo.colorBlendAttachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        configInfo.colorBlendAttachments[i].alphaBlendOp = VK_BLEND_OP_MAX;
+        configInfo.colorBlendAttachments[index].blendEnable = colorAttachments[i].blendEnable;
+        configInfo.colorBlendAttachments[index].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        configInfo.colorBlendAttachments[index].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        configInfo.colorBlendAttachments[index].colorBlendOp = VK_BLEND_OP_ADD;
+        configInfo.colorBlendAttachments[index].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        configInfo.colorBlendAttachments[index].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        configInfo.colorBlendAttachments[index].alphaBlendOp = VK_BLEND_OP_MAX;
     }
 
     //Color blending (info)

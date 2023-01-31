@@ -1,35 +1,31 @@
-#ifndef LV_FRAMEBUFFER_H
-#define LV_FRAMEBUFFER_H
+#ifndef LV_METAL_FRAMEBUFFER_H
+#define LV_METAL_FRAMEBUFFER_H
 
 #include <vector>
 
-#include "attachment.hpp"
+#include "render_pass.hpp"
 #include "command_buffer.hpp"
 
 namespace lv {
 
-class Framebuffer {
+class Metal_Framebuffer {
 public:
     uint8_t frameCount = 0;
 
     std::vector<MTL::RenderPassDescriptor*> renderPasses;
-    CommandBuffer commandBuffer;
+    Metal_CommandBuffer commandBuffer;
     MTL::RenderCommandEncoder* encoder = nullptr;
 
-    std::vector<Attachment> colorAttachments;
-    Attachment depthAttachment;
+    std::vector<Metal_FramebufferAttachment> colorAttachments;
+    Metal_FramebufferAttachment depthAttachment;
 
-    void init();
+    void init(Metal_RenderPass* renderPass);
 
     void destroy();
 
-    void addColorAttachment(Image* image, uint8_t attachmentIndex, MTL::LoadAction loadOp = MTL::LoadActionDontCare, MTL::StoreAction storeOp = MTL::StoreActionStore) {
-        colorAttachments.push_back({image, attachmentIndex, loadOp, storeOp});
-    }
+    void addColorAttachment(Metal_FramebufferAttachment attachment) { colorAttachments.push_back(attachment); }
 
-    void setDepthAttachment(Image* image, uint8_t attachmentIndex, MTL::LoadAction loadOp = MTL::LoadActionDontCare, MTL::StoreAction storeOp = MTL::StoreActionStore) {
-        depthAttachment = {image, attachmentIndex, loadOp, storeOp};
-    }
+    void setDepthAttachment(Metal_FramebufferAttachment attachment) { depthAttachment = attachment; }
 
     void bind();
 

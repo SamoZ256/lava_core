@@ -1,5 +1,5 @@
-#ifndef LV_DEVICE_H
-#define LV_DEVICE_H
+#ifndef LV_VULKAN_DEVICE_H
+#define LV_VULKAN_DEVICE_H
 
 // std lib headers
 #include <string>
@@ -29,13 +29,13 @@ struct QueueFamilyIndices {
 	bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
 };
 
-struct DeviceCreateInfo {
+struct Vulkan_DeviceCreateInfo {
     LvndWindow* window;
 };
 
-class Device {
+class Vulkan_Device {
 public:
-    Device(DeviceCreateInfo& createInfo);
+    Vulkan_Device(Vulkan_DeviceCreateInfo& createInfo);
 
     void destroy();
 
@@ -89,10 +89,10 @@ public:
     const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_MAINTENANCE1_EXTENSION_NAME, VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME/*, "VK_KHR_portability_subset"*/};
 };
 
-extern Device* g_device;
+extern Vulkan_Device* g_vulkan_device;
 
 //Implementation
-//class Dev { public: static Device* g_device; };
+//class Dev { public: static Device* g_metal_device; };
 
 } //namespace lv
 

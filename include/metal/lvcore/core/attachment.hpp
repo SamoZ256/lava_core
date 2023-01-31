@@ -1,15 +1,30 @@
-#ifndef LV_ATTACHMENT_H
-#define LV_ATTACHMENT_H
+#ifndef LV_METAL_ATTACHMENT_H
+#define LV_METAL_ATTACHMENT_H
 
-#include "image.hpp"
+#include "enums.hpp"
+
+#include "image_view.hpp"
 
 namespace lv {
 
-struct Attachment {
-    Image* image = nullptr;
-    uint8_t attachmentIndex;
-    MTL::LoadAction loadOp;
-    MTL::StoreAction storeOp;
+struct Metal_RenderPassAttachment {
+    MTL::PixelFormat format;
+    int8_t index = -1;
+    MTL::LoadAction loadOp = MTL::LoadActionDontCare;
+    MTL::StoreAction storeOp = MTL::StoreActionStore;
+    bool blendEnable = false;
+    LvImageLayout initialLayout = LV_IMAGE_LAYOUT_UNDEFINED;
+    LvImageLayout finalLayout = LV_IMAGE_LAYOUT_UNDEFINED;
+};
+
+struct Metal_SubpassAttachment {
+    int8_t index = -1;
+    LvImageLayout layout = LV_IMAGE_LAYOUT_UNDEFINED;
+};
+
+struct Metal_FramebufferAttachment {
+    Metal_ImageView* imageView = nullptr;
+    int8_t index = -1;
 };
 
 } //namespace lv

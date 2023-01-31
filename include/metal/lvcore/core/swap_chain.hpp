@@ -1,5 +1,5 @@
-#ifndef LV_SWAP_CHAIN_H
-#define LV_SWAP_CHAIN_H
+#ifndef LV_METAL_SWAP_CHAIN_H
+#define LV_METAL_SWAP_CHAIN_H
 
 #include <stdexcept>
 
@@ -12,20 +12,23 @@
 
 namespace lv {
 
-struct SwapChainCreateInfo {
+struct Metal_SwapChainCreateInfo {
 	LvndWindow* window;
   	bool vsyncEnabled = true;
 	uint8_t maxFramesInFlight = 2;
 	bool clearAttachment = false;
 };
 
-class SwapChain {
+class Metal_SwapChain {
 public:
     uint8_t maxFramesInFlight;
     uint8_t crntFrame = 0;
 
-    Framebuffer framebuffer;
-    Image colorImage;
+    Metal_Subpass subpass;
+    Metal_RenderPass renderPass;
+    Metal_Framebuffer framebuffer;
+    Metal_Image colorImage;
+    Metal_ImageView colorImageView;
     //Image depthAttachment;
 
     LvndWindow* _window;
@@ -34,7 +37,7 @@ public:
 
     MTL::PixelFormat depthFormat = MTL::PixelFormatDepth32Float;
 
-    SwapChain(SwapChainCreateInfo& createInfo);
+    Metal_SwapChain(Metal_SwapChainCreateInfo& createInfo);
 
     void init(LvndWindow* window);
 
@@ -56,7 +59,7 @@ public:
 
     uint32_t height() { return _height; }
 
-    CommandBuffer* activeCommandBuffer = nullptr;
+    Metal_CommandBuffer* activeCommandBuffer = nullptr;
     MTL::RenderCommandEncoder* activeRenderEncoder = nullptr;
     MTL::ComputeCommandEncoder* activeComputeEncoder = nullptr;
     std::vector<MTL::RenderPassDescriptor*> activeRenderPasses;
@@ -65,7 +68,7 @@ private:
     uint32_t _width, _height;
 };
 
-extern SwapChain* g_swapChain;
+extern Metal_SwapChain* g_metal_swapChain;
 
 } //namespace lv
 

@@ -1,14 +1,14 @@
-#include "lvcore/core/viewport.hpp"
+#include "metal/lvcore/core/viewport.hpp"
 
 #include <iostream>
 
 namespace lv {
 
-Viewport::Viewport(int32_t x, int32_t y, uint32_t width, uint32_t height) {
+Metal_Viewport::Metal_Viewport(int32_t x, int32_t y, uint32_t width, uint32_t height) {
     setViewport(x, y, width, height);
 }
 
-void Viewport::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) {
+void Metal_Viewport::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) {
 	uint32_t trueTotalWidth = (totalWidth == 0 ? width : totalWidth);
 	uint32_t trueTotalHeight = (totalHeight == 0 ? height : totalHeight);
     viewport.originX = x;
@@ -29,9 +29,9 @@ void Viewport::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height
 	scissor.y = std::max((int)scissor.y, 0);
 }
 
-void Viewport::bind() {
-    g_swapChain->activeRenderEncoder->setViewport(viewport);
-    g_swapChain->activeRenderEncoder->setScissorRect(scissor);
+void Metal_Viewport::bind() {
+    g_metal_swapChain->activeRenderEncoder->setViewport(viewport);
+    g_metal_swapChain->activeRenderEncoder->setScissorRect(scissor);
 }
 
 } //namespace lv

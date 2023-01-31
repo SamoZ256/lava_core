@@ -1,14 +1,14 @@
-#include "lvcore/core/image_helper.hpp"
+#include "vulkan/lvcore/core/image_helper.hpp"
 
-#include "lvcore/core/common.hpp"
+#include "vulkan/lvcore/core/common.hpp"
 
-#include "lvcore/core/buffer_helper.hpp"
-#include "lvcore/core/allocator.hpp"
-#include "lvcore/core/device.hpp"
+#include "vulkan/lvcore/core/buffer_helper.hpp"
+#include "vulkan/lvcore/core/allocator.hpp"
+#include "vulkan/lvcore/core/device.hpp"
 
 namespace lv {
 
-VmaAllocation ImageHelper::createImage(uint16_t width, uint16_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memoryUsage, VkImage& image, VmaAllocationInfo* allocInfo, VkMemoryPropertyFlags properties, uint8_t layerCount, uint8_t mipCount, VmaAllocationCreateFlags allocationFlags, VkImageCreateFlags flags) {
+VmaAllocation Vulkan_ImageHelper::createImage(uint16_t width, uint16_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage/*, VmaMemoryUsage memoryUsage*/, VkImage& image, VmaAllocationInfo* allocInfo, VkMemoryPropertyFlags properties, uint8_t layerCount, uint8_t mipCount, VmaAllocationCreateFlags allocationFlags, VkImageCreateFlags flags) {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -26,18 +26,18 @@ VmaAllocation ImageHelper::createImage(uint16_t width, uint16_t height, VkFormat
     imageInfo.flags = flags; // Optional
 
     VmaAllocationCreateInfo allocCreateInfo = {};
-    allocCreateInfo.usage = memoryUsage;
+    allocCreateInfo.usage = VMA_MEMORY_USAGE_UNKNOWN;
     allocCreateInfo.requiredFlags = properties;
     allocCreateInfo.flags = allocationFlags;
     
     VmaAllocation allocation;
-    VK_CHECK_RESULT(vmaCreateImage(g_allocator->allocator, &imageInfo, &allocCreateInfo, &image, &allocation, allocInfo))
+    VK_CHECK_RESULT(vmaCreateImage(g_vulkan_allocator->allocator, &imageInfo, &allocCreateInfo, &image, &allocation, allocInfo))
 
     return allocation;
 }
 
-void ImageHelper::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask, uint8_t layerCount, uint8_t mipCount) {
-    VkCommandBuffer commandBuffer = g_device->beginSingleTimeCommands();
+void Vulkan_ImageHelper::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask, uint8_t layerCount, uint8_t mipCount) {
+    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands();
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -151,10 +151,10 @@ void ImageHelper::transitionImageLayout(VkImage image, VkFormat format, VkImageL
         1, &barrier
     );
 
-    g_device->endSingleTimeCommands(commandBuffer);
+    g_vulkan_device->endSingleTimeCommands(commandBuffer);
 }
 
-void ImageHelper::createImageView(VkImageView& imageView, VkImage& image, VkFormat format, VkImageAspectFlags aspectMask, VkImageViewType viewType, uint8_t baseLayer, uint8_t layerCount, uint8_t baseMip, uint8_t mipCount) {
+void Vulkan_ImageHelper::createImageView(VkImageView& imageView, VkImage& image, VkFormat format, VkImageAspectFlags aspectMask, VkImageViewType viewType, uint8_t baseLayer, uint8_t layerCount, uint8_t baseMip, uint8_t mipCount) {
     //std::cout << (int)viewType << std::endl;
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -168,10 +168,10 @@ void ImageHelper::createImageView(VkImageView& imageView, VkImage& image, VkForm
     viewInfo.subresourceRange.baseArrayLayer = baseLayer;
     viewInfo.subresourceRange.layerCount = layerCount;
 
-    VK_CHECK_RESULT(vkCreateImageView(g_device->device(), &viewInfo, nullptr, &imageView))
+    VK_CHECK_RESULT(vkCreateImageView(g_vulkan_device->device(), &viewInfo, nullptr, &imageView))
 }
 
-void ImageHelper::createImageSampler(VkSampler& sampler, VkFilter filter, VkSamplerAddressMode addressMode, VkCompareOp compareOp, float minLod, float maxLod) {
+void Vulkan_ImageHelper::createImageSampler(VkSampler& sampler, VkFilter filter, VkSamplerAddressMode addressMode, VkCompareOp compareOp, float minLod, float maxLod) {
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = filter;
@@ -182,7 +182,7 @@ void ImageHelper::createImageSampler(VkSampler& sampler, VkFilter filter, VkSamp
 
     //Anastropic filtering
     VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(g_device->physicalDevice, &properties);
+    vkGetPhysicalDeviceProperties(g_vulkan_device->physicalDevice, &properties);
 
     samplerInfo.anisotropyEnable = VK_TRUE;
     samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
@@ -195,7 +195,7 @@ void ImageHelper::createImageSampler(VkSampler& sampler, VkFilter filter, VkSamp
     samplerInfo.minLod = minLod;
     samplerInfo.maxLod = maxLod;
 
-    VK_CHECK_RESULT(vkCreateSampler(g_device->device(), &samplerInfo, nullptr, &sampler))
+    VK_CHECK_RESULT(vkCreateSampler(g_vulkan_device->device(), &samplerInfo, nullptr, &sampler))
 }
 
 /*

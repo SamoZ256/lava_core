@@ -1,5 +1,5 @@
-#ifndef LV_UNIFORM_BUFFER_H
-#define LV_UNIFORM_BUFFER_H
+#ifndef LV_VULKAN_UNIFORM_BUFFER_H
+#define LV_VULKAN_UNIFORM_BUFFER_H
 
 #include <vector>
 
@@ -8,12 +8,12 @@
 
 namespace lv {
 
-struct BufferInfo {
+struct Vulkan_BufferInfo {
     std::vector<VkDescriptorBufferInfo> infos;
     VkDescriptorType descriptorType;
 };
 
-class UniformBuffer {
+class Vulkan_UniformBuffer {
 public:
     uint8_t frameCount = 0;
 
@@ -22,13 +22,13 @@ public:
     //std::vector<VmaAllocationInfo> allocInfos;
     size_t size;
 
-    UniformBuffer(size_t aSize);
+    Vulkan_UniformBuffer(size_t aSize);
 
     void destroy();
 
     //VkDescriptorSetLayoutBinding getBinding(uint8_t binding);
 
-    BufferInfo descriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    Vulkan_BufferInfo descriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
     void upload(void* uploadData);
 };

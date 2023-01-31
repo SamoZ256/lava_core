@@ -1,5 +1,5 @@
-#ifndef LV_IMAGE_H
-#define LV_IMAGE_H
+#ifndef LV_VULKAN_IMAGE_H
+#define LV_VULKAN_IMAGE_H
 
 #include <cassert>
 #include <stdexcept>
@@ -13,7 +13,7 @@
 
 namespace lv {
 
-class Image {
+class Vulkan_Image {
 public:
     uint8_t frameCount = 0;
 
@@ -26,12 +26,14 @@ public:
     VkFormat format;
     VkImageUsageFlags usage = 0;// = /*VK_IMAGE_USAGE_TRANSFER_DST_BIT | */VK_IMAGE_USAGE_SAMPLED_BIT;
     VkImageAspectFlags aspectMask = 0;
-    uint8_t layerCount = 1;
-    uint8_t mipCount = 1;
+    VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D;
+    VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    uint16_t layerCount = 1;
+    uint16_t mipCount = 1;
     //VkImageLayout dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     VkImageCreateFlags flags = 0;
-    VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    //VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    //VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	VmaAllocationCreateFlags allocationFlags = 0;
 
     bool resized = false;

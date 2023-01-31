@@ -1,5 +1,5 @@
-#ifndef LV_SAMPLER_H
-#define LV_SAMPLER_H
+#ifndef LV_METAL_SAMPLER_H
+#define LV_METAL_SAMPLER_H
 
 #include "enums.hpp"
 
@@ -7,10 +7,10 @@
 
 namespace lv {
 
-class Sampler {
+class Metal_Sampler {
 public:
     MTL::SamplerState* sampler;
-    MTL::SamplerMinMagFilter filter = MTL::SamplerMinMagFilter::SamplerMinMagFilterNearest;
+    MTL::SamplerMinMagFilter filter = MTL::SamplerMinMagFilterNearest;
     MTL::SamplerAddressMode addressMode = MTL::SamplerAddressModeClampToEdge;
     unsigned int compareEnable = false;
     MTL::CompareFunction compareOp = MTL::CompareFunctionLess;

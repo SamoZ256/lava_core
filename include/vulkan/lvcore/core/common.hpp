@@ -1,5 +1,5 @@
-#ifndef LV_COMMON_H
-#define LV_COMMON_H
+#ifndef LV_VULKAN_COMMON_H
+#define LV_VULKAN_COMMON_H
 
 #include <string>
 #include <cassert>

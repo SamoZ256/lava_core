@@ -1,11 +1,11 @@
-#ifndef LV_BUFFER_H
-#define LV_BUFFER_H
+#ifndef LV_METAL_BUFFER_H
+#define LV_METAL_BUFFER_H
 
 #include "swap_chain.hpp"
 
 namespace lv {
 
-class Buffer {
+class Metal_Buffer {
 public:
     MTL::Buffer* buffer;
     size_t size;
@@ -14,11 +14,11 @@ public:
 
     void destroy();
 
-    void bindVertexBuffer(uint16_t index) { g_swapChain->activeRenderEncoder->setVertexBuffer(buffer, 0, index); }
+    void bindVertexBuffer(uint16_t index) { g_metal_swapChain->activeRenderEncoder->setVertexBuffer(buffer, 0, index); }
 
-    void render(size_t vertexSize) { g_swapChain->activeRenderEncoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(size / vertexSize)); }
+    void render(size_t vertexSize) { g_metal_swapChain->activeRenderEncoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(size / vertexSize)); }
 
-    void renderIndexed(MTL::IndexType indexType, size_t indexSize) { g_swapChain->activeRenderEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, size / indexSize, indexType, buffer, 0); }
+    void renderIndexed(MTL::IndexType indexType, size_t indexSize) { g_metal_swapChain->activeRenderEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, size / indexSize, indexType, buffer, 0); }
 
     static void copyBufferToBuffer(MTL::Buffer* srcBuffer, MTL::Buffer* dstBuffer, uint32_t size);
 

@@ -1,19 +1,23 @@
-#ifndef LV_ENUMS_H
-#define LV_ENUMS_H
+#ifndef LV_METAL_ENUMS_H
+#define LV_METAL_ENUMS_H
 
 #include <Metal/Metal.hpp>
+
+//Bool
+#define LvBool bool
 
 #define LV_TRUE true
 #define LV_FALSE false
 
 //Shader stage
-enum LvShaderStage {
-    LV_SHADER_STAGE_VERTEX_BIT,
-    LV_SHADER_STAGE_FRAGMENT_BIT,
-    LV_SHADER_STAGE_COMPUTE_BIT
-};
+#define LvShaderStage uint8_t
+
+#define LV_SHADER_STAGE_VERTEX_BIT 0x1
+#define LV_SHADER_STAGE_FRAGMENT_BIT 0x2
+#define LV_SHADER_STAGE_COMPUTE_BIT 0x4
 
 //Format
+#define LvFormat MTL::PixelFormat
 
 //R
 
@@ -75,25 +79,35 @@ enum LvShaderStage {
 #define LV_FORMAT_RGBA32_SFLOAT MTL::PixelFormatRGBA32Float
 
 //Cull mode
+#define LvCullMode MTL::CullMode
+
 #define LV_CULL_MODE_NONE MTL::CullModeNone
 #define LV_CULL_MODE_FRONT_BIT MTL::CullModeFront
 #define LV_CULL_MODE_BACK_BIT MTL::CullModeBack
 
 //Front face
+#define LvFrontFace MTL::Winding
+
 #define LV_FRONT_FACE_COUNTER_CLOCKWISE MTL::WindingCounterClockwise
 #define LV_FRONT_FACE_CLOCKWISE MTL::WindingClockwise
 
 //Image usage
+#define LvImageUsage MTL::TextureUsage
+
 #define LV_IMAGE_USAGE_SAMPLED_BIT MTL::TextureUsageShaderRead
 #define LV_IMAGE_USAGE_COLOR_ATTACHMENT_BIT MTL::TextureUsageRenderTarget
 #define LV_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT MTL::TextureUsageRenderTarget
 #define LV_IMAGE_USAGE_STORAGE_BIT MTL::TextureUsageShaderWrite
 
 //Filter
+#define LvFilter MTL::SamplerMinMagFilter
+
 #define LV_FILTER_NEAREST MTL::SamplerMinMagFilterNearest
 #define LV_FILTER_LINEAR MTL::SamplerMinMagFilterLinear
 
 //Image view type
+#define LvImageViewType MTL::TextureType
+
 #define LV_IMAGE_VIEW_TYPE_1D MTL::TextureType1D
 #define LV_IMAGE_VIEW_TYPE_2D MTL::TextureType2D
 #define LV_IMAGE_VIEW_TYPE_3D MTL::TextureType3D
@@ -103,6 +117,8 @@ enum LvShaderStage {
 #define LV_IMAGE_VIEW_TYPE_CUBE_ARRAY MTL::TextureTypeCubeArray
 
 //Sampler address mode
+#define LvSamplerAddressMode MTL::SamplerAddressMode
+
 #define LV_SAMPLER_ADDRESS_MODE_REPEAT MTL::SamplerAddressModeRepeat
 #define LV_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT MTL::SamplerAddressModeMirrorRepeat
 #define LV_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE MTL::SamplerAddressModeClampToEdge
@@ -110,19 +126,27 @@ enum LvShaderStage {
 #define LV_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE MTL::SamplerAddressModeMirrorClampToEdge
 
 //Index type
+#define LvIndexType MTL::IndexType
+
 #define LV_INDEX_TYPE_UINT16 MTL::IndexTypeUInt16
 #define LV_INDEX_TYPE_UINT32 MTL::IndexTypeUInt32
 
 //Load Op
+#define LvAttachmentLoadOp MTL::LoadAction
+
 #define LV_ATTACHMENT_LOAD_OP_DONT_CARE MTL::LoadActionDontCare
 #define LV_ATTACHMENT_LOAD_OP_CLEAR MTL::LoadActionClear
 #define LV_ATTACHMENT_LOAD_OP_LOAD MTL::LoadActionLoad
 
 //Store Op
+#define LvAttachmentStoreOp MTL::StoreAction
+
 #define LV_ATTACHMENT_STORE_OP_DONT_CARE MTL::StoreActionDontCare
 #define LV_ATTACHMENT_STORE_OP_STORE MTL::StoreActionStore
 
 //Compare op
+#define LvCompareOp MTL::CompareFunction
+
 #define LV_COMPARE_OP_NEVER MTL::CompareFunctionNever
 #define LV_COMPARE_OP_LESS MTL::CompareFunctionLess
 #define LV_COMPARE_OP_EQUAL MTL::CompareFunctionEqual
@@ -133,9 +157,46 @@ enum LvShaderStage {
 #define LV_COMPARE_OP_ALWAYS MTL::CompareFunctionAlways
 
 //Vertex format
+#define LvVertexFormat MTL::VertexFormat
+
 #define LV_VERTEX_FORMAT_R8_UINT MTL::VertexFormatUChar
 #define LV_VERTEX_FORMAT_RG8_UINT MTL::VertexFormatUChar2
 #define LV_VERTEX_FORMAT_RG32_SFLOAT MTL::VertexFormatFloat2
 #define LV_VERTEX_FORMAT_RGB32_SFLOAT MTL::VertexFormatFloat3
+
+//Image layout
+#define LvImageLayout uint8_t
+
+#define LV_IMAGE_LAYOUT_UNDEFINED 0
+#define LV_IMAGE_LAYOUT_GENERAL 1
+#define LV_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL 2
+#define LV_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL 3
+#define LV_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL 4
+#define LV_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL 5
+#define LV_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL 6
+#define LV_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL 7
+#define LV_IMAGE_LAYOUT_PREINITIALIZED 8
+#define LV_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL 9
+#define LV_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL 10
+#define LV_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL 11
+#define LV_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL 12
+#define LV_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL 13
+#define LV_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL 14
+#define LV_IMAGE_LAYOUT_READ_ONLY_OPTIMAL 15
+#define LV_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL 16
+
+//Image aspect
+#define LvImageAspect uint8_t
+
+#define LV_IMAGE_ASPECT_COLOR_BIT 0x1
+#define LV_IMAGE_ASPECT_DEPTH_BIT 0x2
+#define LV_IMAGE_ASPECT_STENCIL_BIT 0x4
+
+//Memory usage
+#define LvMemoryProperty MTL::StorageMode
+
+#define LV_MEMORY_PROPERTY_GPU_ONLY MTL::StorageModePrivate
+#define LV_MEMORY_PROPERTY_SHARED MTL::StorageModeShared
+#define LV_MEMORY_PROPERTY_MEMORYLESS MTL::StorageModeMemoryless
 
 #endif

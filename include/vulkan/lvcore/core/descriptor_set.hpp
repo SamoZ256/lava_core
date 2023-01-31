@@ -1,5 +1,5 @@
-#ifndef LV_DESCRIPTOR_SET_H
-#define LV_DESCRIPTOR_SET_H
+#ifndef LV_VULKAN_DESCRIPTOR_SET_H
+#define LV_VULKAN_DESCRIPTOR_SET_H
 
 #include <memory>
 #include <unordered_map>
@@ -18,16 +18,16 @@
 
 namespace lv {
 
-class DescriptorSet;
+class Vulkan_DescriptorSet;
 
-class DescriptorSetLayout {
+class Vulkan_DescriptorSetLayout {
 public:
-    DescriptorSetLayout() = default;
+    Vulkan_DescriptorSetLayout() = default;
     
     void destroy();
 
     //DescriptorSetLayout(const DescriptorSetLayout&) = delete;
-    DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
+    Vulkan_DescriptorSetLayout& operator=(const Vulkan_DescriptorSetLayout&) = delete;
 
     void addBinding(
             uint32_t binding,
@@ -40,9 +40,9 @@ public:
     void init();
 };
 
-class PipelineLayout {
+class Vulkan_PipelineLayout {
 public:
-    std::vector<DescriptorSetLayout> descriptorSetLayouts;
+    std::vector<Vulkan_DescriptorSetLayout> descriptorSetLayouts;
     VkPipelineLayout pipelineLayout;
     std::vector<VkPushConstantRange> pushConstantRanges;
 
@@ -51,14 +51,14 @@ public:
     void destroy();
 };
  
-class DescriptorWriter {
+class Vulkan_DescriptorWriter {
 public:
     //uint8_t layouts;
-    PipelineLayout& pipelineLayout;
+    Vulkan_PipelineLayout& pipelineLayout;
     uint8_t layoutIndex;
     std::vector<VkWriteDescriptorSet> writes;
 
-    DescriptorWriter(PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
+    Vulkan_DescriptorWriter(Vulkan_PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
     
     void writeBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
     void writeImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
@@ -67,24 +67,24 @@ public:
     void overwrite(VkDescriptorSet &set);
 };
 
-class DescriptorSet {
+class Vulkan_DescriptorSet {
 public:
     uint8_t frameCount = 0;
 
     std::vector<VkDescriptorSet> descriptorSets;
 
     //uint16_t shaderType;
-    PipelineLayout& pipelineLayout;
+    Vulkan_PipelineLayout& pipelineLayout;
     uint8_t layoutIndex;
     VkDescriptorPool* pool;
 
-    std::vector<BufferInfo> bufferInfos;
+    std::vector<Vulkan_BufferInfo> bufferInfos;
     std::vector<uint32_t> bufferBindingIndices;
-    std::vector<ImageInfo> imageInfos;
+    std::vector<Vulkan_ImageInfo> imageInfos;
     std::vector<uint32_t> imageBindingIndices;
     std::vector<VkDescriptorType> descriptorTypes;
 
-    DescriptorSet(PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
+    Vulkan_DescriptorSet(Vulkan_PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
 
     //void destroy();
 
@@ -92,9 +92,9 @@ public:
 
     void destroy();
 
-    void addBinding(BufferInfo bufferInfo, uint32_t binding);
+    void addBinding(Vulkan_BufferInfo bufferInfo, uint32_t binding);
 
-    void addBinding(ImageInfo imageInfo, uint32_t binding);
+    void addBinding(Vulkan_ImageInfo imageInfo, uint32_t binding);
 
     void bind();
 
@@ -103,7 +103,7 @@ public:
     void registerDescriptorSet();
 };
 
-struct DescriptorPoolCreateInfo {
+struct Vulkan_DescriptorPoolCreateInfo {
 	//uint16_t pipelineLayoutCount;
 	std::map<VkDescriptorType, uint16_t> poolSizes = {
 		{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 4},
@@ -111,7 +111,7 @@ struct DescriptorPoolCreateInfo {
 	};
 };
 
-class DescriptorPool {
+class Vulkan_DescriptorPool {
 public:
     VkDescriptorPool descriptorPool;
 
@@ -124,7 +124,7 @@ public:
         std::map<VkDescriptorType, uint16_t> poolSizesBegin;
         std::map<VkDescriptorType, uint16_t> poolSizes;
 
-    DescriptorPool(DescriptorPoolCreateInfo& createInfo);
+    Vulkan_DescriptorPool(Vulkan_DescriptorPoolCreateInfo& createInfo);
 
     void init();
 
@@ -178,7 +178,7 @@ public:
 };
 */
 
-extern DescriptorPool* g_descriptorPool;
+extern Vulkan_DescriptorPool* g_vulkan_descriptorPool;
 
 /*
 class Desc {

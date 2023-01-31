@@ -1,16 +1,13 @@
-#include "lvcore/core/framebuffer.hpp"
+#include "vulkan/lvcore/core/framebuffer.hpp"
 
-#include "lvcore/core/swap_chain.hpp"
+#include "vulkan/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
-void Framebuffer::init(RenderPass* aRenderPass, uint16_t aWidth, uint16_t aHeight) {
-    if (frameCount == 0) frameCount = g_swapChain->maxFramesInFlight;
+void Vulkan_Framebuffer::init(Vulkan_RenderPass* aRenderPass) {
+    if (frameCount == 0) frameCount = g_vulkan_swapChain->maxFramesInFlight;
 
     renderPass = aRenderPass;
-
-    width = aWidth;
-    height = aHeight;
 
     /*
     bool hasDepthAttachment = (depthAttachment.attachmentIndex != -1);
@@ -32,10 +29,18 @@ void Framebuffer::init(RenderPass* aRenderPass, uint16_t aWidth, uint16_t aHeigh
     }
     */
 
-    for (auto& colorAttachment : colorAttachments)
-        maxLayerCount = std::max((uint8_t)std::max((int8_t)colorAttachment.image->layerCount, colorAttachment.imageView->layerCount), maxLayerCount);
-    if (depthAttachment.image != nullptr)
-        maxLayerCount = std::max((uint8_t)std::max((int8_t)depthAttachment.image->layerCount, depthAttachment.imageView->layerCount), maxLayerCount);
+    for (auto& colorAttachment : colorAttachments) {
+        maxLayerCount = std::max((uint16_t)colorAttachment.imageView->layerCount, maxLayerCount);
+        uint16_t scale = pow(2, colorAttachment.imageView->baseMip);
+        width = colorAttachment.imageView->image->width / scale;
+        height = colorAttachment.imageView->image->height / scale;
+    }
+    if (depthAttachment.index != -1) {
+        maxLayerCount = std::max((uint16_t)depthAttachment.imageView->layerCount, maxLayerCount);
+        uint16_t scale = pow(2, depthAttachment.imageView->baseMip);
+        width = depthAttachment.imageView->image->width / scale;
+        height = depthAttachment.imageView->image->height / scale;
+    }
 
     //Framebuffer
     //std::cout << (int)maxLayerCount << std::endl;
@@ -47,7 +52,7 @@ void Framebuffer::init(RenderPass* aRenderPass, uint16_t aWidth, uint16_t aHeigh
             //uint8_t index = i < attachment->imageView->imageViews.size() ? i : 0;
             imageViews.push_back(colorAttachment.imageView->imageViews[i]);
         }
-        if (depthAttachment.image != nullptr) {
+        if (depthAttachment.index != -1) {
             //uint8_t index = i < depthAttachment.imageView->imageViews.size() ? i : 0;
             imageViews.push_back(depthAttachment.imageView->imageViews[i]);
         }
@@ -61,40 +66,36 @@ void Framebuffer::init(RenderPass* aRenderPass, uint16_t aWidth, uint16_t aHeigh
         framebufferInfo.height = height;
         framebufferInfo.layers = maxLayerCount;
 
-        VK_CHECK_RESULT(vkCreateFramebuffer(g_device->device(), &framebufferInfo, nullptr, &framebuffers[i]))
+        VK_CHECK_RESULT(vkCreateFramebuffer(g_vulkan_device->device(), &framebufferInfo, nullptr, &framebuffers[i]))
     }
 
     commandBuffer.frameCount = frameCount;
     commandBuffer.init();
 
     //Clear values
-    clearValues.resize(colorAttachments.size() + (depthAttachment.image == nullptr ? 0 : 1));
+    clearValues.resize(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1));
     for (auto& colorAttachment : colorAttachments) {
-        clearValues[colorAttachment.attachmentIndex].color = {0.0f, 0.0f, 0.0f, 0.0f};
+        clearValues[colorAttachment.index].color = {0.0f, 0.0f, 0.0f, 0.0f};
     }
-    if (depthAttachment.image != nullptr)
-        clearValues[depthAttachment.attachmentIndex].depthStencil = {1.0f, 0};
+    if (depthAttachment.index != -1)
+        clearValues[depthAttachment.index].depthStencil = {1.0f, 0};
 }
 
-void Framebuffer::destroyToRecreate() {
+void Vulkan_Framebuffer::destroyToRecreate() {
     for (auto& framebuffer : framebuffers) {
-        vkDestroyFramebuffer(g_device->device(), framebuffer, nullptr);
+        vkDestroyFramebuffer(g_vulkan_device->device(), framebuffer, nullptr);
     }
 }
 
-void Framebuffer::destroy() {
+void Vulkan_Framebuffer::destroy() {
     commandBuffer.destroy();
     destroyToRecreate();
 }
 
-FramebufferAttachmentDescriptions Framebuffer::getAttachmentDescriptions() {
-    return {colorAttachments, depthAttachment};
-}
-
-void Framebuffer::bind() {
-    //g_swapChain->activeRenderPass = &renderPass->renderPass;
-    //g_swapChain->activeCommandBuffers = &commandBuffers;
-    uint8_t index = g_swapChain->imageIndex;
+void Vulkan_Framebuffer::bind() {
+    //g_metal_swapChain->activeRenderPass = &renderPass->renderPass;
+    //g_metal_swapChain->activeCommandBuffers = &commandBuffers;
+    uint8_t index = g_vulkan_swapChain->imageIndex;
 
     //std::cout << (int8_t)index << " : " << commandBuffers.size() << std::endl;
     commandBuffer.bind();
@@ -111,14 +112,14 @@ void Framebuffer::bind() {
     vkCmdBeginRenderPass(commandBuffer.commandBuffers[index], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void Framebuffer::unbind() {
-    uint8_t index = g_swapChain->imageIndex;
+void Vulkan_Framebuffer::unbind() {
+    uint8_t index = g_vulkan_swapChain->imageIndex;
 
     vkCmdEndRenderPass(commandBuffer.commandBuffers[index]);
     commandBuffer.unbind();
 }
 
-void Framebuffer::render() {
+void Vulkan_Framebuffer::render() {
     commandBuffer.submit();
 }
 

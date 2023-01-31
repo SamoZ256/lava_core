@@ -1,17 +1,17 @@
-#include "lvcore/core/uniform_buffer.hpp"
+#include "vulkan/lvcore/core/uniform_buffer.hpp"
 
 #include <vector>
 
-#include "lvcore/core/common.hpp"
+#include "vulkan/lvcore/core/common.hpp"
 
-#include "lvcore/core/buffer_helper.hpp"
-#include "lvcore/core/allocator.hpp"
-#include "lvcore/core/swap_chain.hpp"
+#include "vulkan/lvcore/core/buffer_helper.hpp"
+#include "vulkan/lvcore/core/allocator.hpp"
+#include "vulkan/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
-UniformBuffer::UniformBuffer(size_t aSize) : size(aSize) {
-	if (frameCount == 0) frameCount = g_swapChain->maxFramesInFlight;
+Vulkan_UniformBuffer::Vulkan_UniformBuffer(size_t aSize) : size(aSize) {
+	if (frameCount == 0) frameCount = g_vulkan_swapChain->maxFramesInFlight;
 
 	buffers.resize(frameCount);
 	allocations.resize(frameCount);
@@ -19,15 +19,15 @@ UniformBuffer::UniformBuffer(size_t aSize) : size(aSize) {
 
 	for (uint8_t i = 0; i < frameCount; i++) {
 		//VmaAllocationInfo allocInfo;
-		allocations[i] = BufferHelper::createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, buffers[i], nullptr, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		allocations[i] = Vulkan_BufferHelper::createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, buffers[i], nullptr, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		//std::cout << "Offset: " << allocInfo.offset << std::endl;
 		//std::cout << "Size: " << allocInfo.size << std::endl;
 	}
 }
 
-void UniformBuffer::destroy() {
+void Vulkan_UniformBuffer::destroy() {
 	for (uint8_t i = 0; i < frameCount; i++) {
-		vmaDestroyBuffer(g_allocator->allocator, buffers[i], allocations[i]);
+		vmaDestroyBuffer(g_vulkan_allocator->allocator, buffers[i], allocations[i]);
 	}
 }
 
@@ -44,8 +44,8 @@ VkDescriptorSetLayoutBinding UniformBuffer::getBinding(uint8_t binding) {
 }
 */
 
-BufferInfo UniformBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset) {
-	BufferInfo info;
+Vulkan_BufferInfo Vulkan_UniformBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset) {
+	Vulkan_BufferInfo info;
 	info.infos.resize(frameCount);
 	for (uint8_t i = 0; i < frameCount; i++) {
 		info.infos[i].buffer = buffers[i];// = VkDescriptorBufferInfo{buffers[i], offset, size};
@@ -57,12 +57,12 @@ BufferInfo UniformBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset)
 	return info;
 }
 
-void UniformBuffer::upload(void* uploadData) {
+void Vulkan_UniformBuffer::upload(void* uploadData) {
 	void* data;
-	vmaMapMemory(g_allocator->allocator, allocations[g_swapChain->imageIndex], &data);
+	vmaMapMemory(g_vulkan_allocator->allocator, allocations[g_vulkan_swapChain->imageIndex], &data);
 	memcpy(data, uploadData, size);
-	vmaUnmapMemory(g_allocator->allocator, allocations[g_swapChain->imageIndex]);
-	//memcpy(allocInfos[Swap::g_swapChain.imageIndex].pMappedData, uploadData, size);
+	vmaUnmapMemory(g_vulkan_allocator->allocator, allocations[g_vulkan_swapChain->imageIndex]);
+	//memcpy(allocInfos[Swap::g_metal_swapChain.imageIndex].pMappedData, uploadData, size);
 }
 
 } //namespace lv

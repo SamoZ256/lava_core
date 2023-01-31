@@ -1,5 +1,5 @@
-#ifndef LV_VERTEX_DESCRIPTOR_H
-#define LV_VERTEX_DESCRIPTOR_H
+#ifndef LV_VULKAN_VERTEX_DESCRIPTOR_H
+#define LV_VULKAN_VERTEX_DESCRIPTOR_H
 
 #include <vector>
 
@@ -7,17 +7,17 @@
 
 namespace lv {
 
-struct VertexDescription {
+struct Vulkan_VertexDescription {
     std::vector<VkVertexInputBindingDescription> bindingDescriptions;
     std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 };
 
-class VertexDescriptor {
+class Vulkan_VertexDescriptor {
 public:
-    VertexDescription vertexDesc;
+    Vulkan_VertexDescription vertexDesc;
     uint16_t bufferBinding = 0;
 
-    VertexDescriptor(uint16_t aBufferBinding, size_t size);
+    Vulkan_VertexDescriptor(uint16_t aBufferBinding, size_t size);
 
     void addBinding(uint16_t location, VkFormat format, uint32_t offset);
 };

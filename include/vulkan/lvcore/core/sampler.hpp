@@ -1,5 +1,5 @@
-#ifndef LV_SAMPLER_H
-#define LV_SAMPLER_H
+#ifndef LV_VULKAN_SAMPLER_H
+#define LV_VULKAN_SAMPLER_H
 
 #include <iostream>
 
@@ -7,7 +7,7 @@
 
 namespace lv {
 
-class Sampler {
+class Vulkan_Sampler {
 public:
     VkSampler sampler;
 
@@ -22,7 +22,7 @@ public:
 
     void destroy();
 
-    ImageInfo descriptorInfo(ImageView& imageView, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    Vulkan_ImageInfo descriptorInfo(Vulkan_ImageView& imageView, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 };
 
 } //namespace lv

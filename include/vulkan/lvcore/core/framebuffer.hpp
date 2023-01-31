@@ -1,41 +1,39 @@
-#ifndef LV_FRAMEBUFFER_H
-#define LV_FRAMEBUFFER_H
+#ifndef LV_VULKAN_FRAMEBUFFER_H
+#define LV_VULKAN_FRAMEBUFFER_H
 
 #include "render_pass.hpp"
 #include "command_buffer.hpp"
 
 namespace lv {
 
-class Framebuffer {
+class Vulkan_Framebuffer {
 public:
     uint8_t frameCount = 0;
 
     std::vector<VkFramebuffer> framebuffers;
-    CommandBuffer commandBuffer;
-    RenderPass* renderPass;
+    Vulkan_CommandBuffer commandBuffer;
+    Vulkan_RenderPass* renderPass;
 
-    std::vector<Attachment> colorAttachments;
-    Attachment depthAttachment;
+    std::vector<Vulkan_FramebufferAttachment> colorAttachments;
+    Vulkan_FramebufferAttachment depthAttachment;
 
     uint16_t width = 0, height = 0;
-    uint8_t maxLayerCount = 1;
+    uint16_t maxLayerCount = 1;
 
     std::vector<VkClearValue> clearValues{};
 
-    void init(RenderPass* aRenderPass, uint16_t aWidth, uint16_t aHeight);
+    void init(Vulkan_RenderPass* aRenderPass);
 
     void destroy();
 
     void destroyToRecreate();
 
-    FramebufferAttachmentDescriptions getAttachmentDescriptions();
-
-    void addColorAttachment(Image* image, ImageView* imageView, uint8_t attachmentIndex, VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, VkAttachmentStoreOp storeOp = VK_ATTACHMENT_STORE_OP_STORE) {
-        colorAttachments.push_back({image, imageView, attachmentIndex, loadOp, storeOp});
+    void addColorAttachment(Vulkan_FramebufferAttachment attachment) {
+        colorAttachments.push_back(attachment);
     }
 
-    void setDepthAttachment(Image* image, ImageView* imageView, uint8_t attachmentIndex, VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, VkAttachmentStoreOp storeOp = VK_ATTACHMENT_STORE_OP_STORE) {
-        depthAttachment = {image, imageView, attachmentIndex, loadOp, storeOp};
+    void setDepthAttachment(Vulkan_FramebufferAttachment attachment) {
+        depthAttachment = attachment;
     }
 
     //void resize(uint16_t aWidth, uint16_t aHeight);

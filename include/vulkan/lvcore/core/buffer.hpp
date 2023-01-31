@@ -1,5 +1,5 @@
-#ifndef LV_BUFFER_H
-#define LV_BUFFER_H
+#ifndef LV_VULKAN_BUFFER_H
+#define LV_VULKAN_BUFFER_H
 
 #include <vector>
 
@@ -8,7 +8,7 @@
 
 namespace lv {
 
-class Buffer {
+class Vulkan_Buffer {
 public:
 	/*
 	VkBuffer vertexBuffer;

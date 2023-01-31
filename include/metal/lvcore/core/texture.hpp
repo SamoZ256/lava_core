@@ -1,5 +1,5 @@
-#ifndef LV_TEXTURE_H
-#define LV_TEXTURE_H
+#ifndef LV_METAL_TEXTURE_H
+#define LV_METAL_TEXTURE_H
 
 #include <string>
 #include <stdexcept>
@@ -9,10 +9,10 @@
 
 namespace lv {
 
-class Texture {
+class Metal_Texture {
 public:
-    Image image;
-    Sampler sampler;
+    Metal_Image image;
+    Metal_Sampler sampler;
 
     std::string filename = "";
 

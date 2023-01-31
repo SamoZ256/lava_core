@@ -1,15 +1,15 @@
-#include "lvcore/core/allocator.hpp"
+#include "vulkan/lvcore/core/allocator.hpp"
 
-#include "lvcore/core/common.hpp"
+#include "vulkan/lvcore/core/common.hpp"
 
-#include "lvcore/core/device.hpp"
+#include "vulkan/lvcore/core/device.hpp"
 
 namespace lv {
 
 //Implementation
-Allocator* g_allocator = nullptr;
+Vulkan_Allocator* g_vulkan_allocator = nullptr;
 
-Allocator::Allocator(AllocatorCreateInfo& createInfo) {
+Vulkan_Allocator::Vulkan_Allocator(Vulkan_AllocatorCreateInfo& createInfo) {
     /*
     VmaVulkanFunctions vulkanFunctions = {};
     vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
@@ -18,20 +18,18 @@ Allocator::Allocator(AllocatorCreateInfo& createInfo) {
     
     VmaAllocatorCreateInfo allocatorCreateInfo = {};
     allocatorCreateInfo.vulkanApiVersion = createInfo.vulkanVersion;
-    allocatorCreateInfo.physicalDevice = g_device->physicalDevice;
-    allocatorCreateInfo.device = g_device->device();
-    allocatorCreateInfo.instance = g_instance->instance;
+    allocatorCreateInfo.physicalDevice = g_vulkan_device->physicalDevice;
+    allocatorCreateInfo.device = g_vulkan_device->device();
+    allocatorCreateInfo.instance = g_vulkan_instance->instance;
     //allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
     
     VK_CHECK_RESULT(vmaCreateAllocator(&allocatorCreateInfo, &allocator));
 
-    g_allocator = this;
+    g_vulkan_allocator = this;
 }
 
-void Allocator::destroy() {
-    std::cout << "Destroying allocator" << std::endl;
+void Vulkan_Allocator::destroy() {
     vmaDestroyAllocator(allocator);
-    std::cout << "Destroyed allocator" << std::endl;
 }
 
 } //namespace lv

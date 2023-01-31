@@ -1,5 +1,5 @@
-#ifndef LV_INSTANCE_H
-#define LV_INSTANCE_H
+#ifndef LV_VULKAN_INSTANCE_H
+#define LV_VULKAN_INSTANCE_H
 
 #include <string>
 #include <vector>
@@ -13,14 +13,14 @@
 
 namespace lv {
 
-struct InstanceCreateInfo {
+struct Vulkan_InstanceCreateInfo {
     const char* applicationName;
     uint32_t applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     uint32_t vulkanVersion = VK_API_VERSION_1_1;
     bool enableValidationLayers = false;
 };
 
-class Instance {
+class Vulkan_Instance {
 public:
 /*
 #ifdef NDEBUG
@@ -34,7 +34,7 @@ public:
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
 
-    Instance(InstanceCreateInfo& createInfo);
+    Vulkan_Instance(Vulkan_InstanceCreateInfo& createInfo);
 
     void destroy();
 
@@ -47,7 +47,7 @@ public:
     const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 };
 
-extern Instance* g_instance;
+extern Vulkan_Instance* g_vulkan_instance;
 
 //Implementation
 //class Inst { public: static Instance* g_instance; };

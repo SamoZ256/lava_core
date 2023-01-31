@@ -1,14 +1,14 @@
-#ifndef LV_BUFFER_HELPER_H
-#define LV_BUFFER_HELPER_H
+#ifndef LV_VULKAN_BUFFER_HELPER_H
+#define LV_VULKAN_BUFFER_HELPER_H
 
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
 
 namespace lv {
 
-class BufferHelper {
+class Vulkan_BufferHelper {
 public:
-  static VmaAllocation createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, VkBuffer &buffer, VmaAllocationInfo* allocInfo = nullptr, VkMemoryPropertyFlags properties = 0, VmaAllocationCreateFlags allocationFlags = 0);
+  static VmaAllocation createBuffer(VkDeviceSize size, VkBufferUsageFlags usage/*, VmaMemoryUsage memoryUsage*/, VkBuffer &buffer, VmaAllocationInfo* allocInfo = nullptr, VkMemoryPropertyFlags properties = 0, VmaAllocationCreateFlags allocationFlags = 0);
 
   static void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 

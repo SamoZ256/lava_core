@@ -1,11 +1,11 @@
-#include "lvcore/core/instance.hpp"
+#include "vulkan/lvcore/core/instance.hpp"
 
-#include "lvcore/core/common.hpp"
+#include "vulkan/lvcore/core/common.hpp"
 
 namespace lv {
 
 //Implementation
-Instance* g_instance = nullptr;
+Vulkan_Instance* g_vulkan_instance = nullptr;
 
 // local callback functions
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData) {
@@ -30,7 +30,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 	}
 }
 
-Instance::Instance(InstanceCreateInfo& createInfo) {
+Vulkan_Instance::Vulkan_Instance(Vulkan_InstanceCreateInfo& createInfo) {
 	enableValidationLayers = createInfo.enableValidationLayers;
     if (enableValidationLayers && !checkValidationLayerSupport()) {
 		throw std::runtime_error("Validation layers requested, but not available");
@@ -72,10 +72,10 @@ Instance::Instance(InstanceCreateInfo& createInfo) {
 	hasGflwRequiredInstanceExtensions();
 	setupDebugMessenger();
 
-	g_instance = this;
+	g_vulkan_instance = this;
 }
 
-void Instance::destroy() {
+void Vulkan_Instance::destroy() {
     std::cout << "Destroying instance" << std::endl;
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
@@ -85,14 +85,14 @@ void Instance::destroy() {
     std::cout << "Destroyed instance" << std::endl;
 }
 
-void Instance::setupDebugMessenger() {
+void Vulkan_Instance::setupDebugMessenger() {
 	if (!enableValidationLayers) return;
 	VkDebugUtilsMessengerCreateInfoEXT createInfo;
 	populateDebugMessengerCreateInfo(createInfo);
 	VK_CHECK_RESULT(CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger))
 }
 
-bool Instance::checkValidationLayerSupport() {
+bool Vulkan_Instance::checkValidationLayerSupport() {
 	uint32_t layerCount;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -117,7 +117,7 @@ bool Instance::checkValidationLayerSupport() {
 	return true;
 }
 
-void Instance::hasGflwRequiredInstanceExtensions() {
+void Vulkan_Instance::hasGflwRequiredInstanceExtensions() {
 	uint32_t extensionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 	std::vector<VkExtensionProperties> extensions(extensionCount);
@@ -140,7 +140,7 @@ void Instance::hasGflwRequiredInstanceExtensions() {
 	}
 }
 
-void Instance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
+void Vulkan_Instance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
 	createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -152,7 +152,7 @@ void Instance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoE
 	createInfo.pUserData = nullptr;  // Optional
 }
 
-std::vector<const char *> Instance::getRequiredExtensions() {
+std::vector<const char *> Vulkan_Instance::getRequiredExtensions() {
 	uint16_t glfwExtensionCount = 0;
 	const char** glfwExtensions;
 	glfwExtensions = lvndVulkanGetRequiredInstanceExtensions(&glfwExtensionCount);

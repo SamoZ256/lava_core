@@ -1,40 +1,19 @@
-#include "lvcore/core/render_pass.hpp"
+#include "vulkan/lvcore/core/render_pass.hpp"
 
-#include "lvcore/core/common.hpp"
+#include "vulkan/lvcore/core/common.hpp"
 
-#include "lvcore/core/swap_chain.hpp"
+#include "vulkan/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
-void RenderPass::init(FramebufferAttachmentDescriptions framebufferAttachmentDescriptions/*, bool readDepthAttachment*/) {
-    colorAttachmentCount = framebufferAttachmentDescriptions.colorAttachments.size();
-
-    std::vector<VkAttachmentDescription> colorAttachmentDecriptions;
-    std::vector<VkAttachmentReference> colorAttachmentReferences;
-
-    for (int i = 0; i < framebufferAttachmentDescriptions.colorAttachments.size(); i++) {
-        Attachment& attachment = framebufferAttachmentDescriptions.colorAttachments[i];
-        //colorAttachments[i]->usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-        colorAttachmentDecriptions.push_back(attachment.getAttachmentDescription(/*framebufferAttachmentDescriptions.colorAttachments[i].image->crntLayout*/));
-        //framebufferAttachmentDescriptions.colorAttachments[i].image->crntLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        colorAttachmentReferences.push_back(attachment.getAttachmentReference(attachment.attachmentIndex, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL/*, framebufferAttachmentDescriptions.colorAttachments[i].image->crntLayout*/));
+void Vulkan_RenderPass::init() {
+    std::vector<VkAttachmentDescription> attachmentDescriptions(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1));
+    for (int i = 0; i < colorAttachments.size(); i++) {
+        attachmentDescriptions[colorAttachments[i].index] = colorAttachments[i].getAttachmentDescription();
     }
-
-    VkAttachmentDescription depthAttachmentDecription;
-    VkAttachmentReference depthAttachmentReference;
-    if (framebufferAttachmentDescriptions.depthAttachment.image != nullptr) {
-        Attachment& attachment = framebufferAttachmentDescriptions.depthAttachment;
-        //if (readDepthAttachment) framebufferAttachmentDescriptions.depthAttachment.image->usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-        depthAttachmentDecription = attachment.getAttachmentDescription(/*framebufferAttachmentDescriptions.depthAttachment.image->crntLayout*/);
-        //framebufferAttachmentDescriptions.depthAttachment.image->crntLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        depthAttachmentReference = attachment.getAttachmentReference(attachment.attachmentIndex, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL/*, framebufferAttachmentDescriptions.depthAttachment.image->crntLayout*/);
+    if (depthAttachment.index != -1) {
+        attachmentDescriptions[depthAttachment.index] = depthAttachment.getAttachmentDescription();
     }
-
-    VkSubpassDescription subpass = {};
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = framebufferAttachmentDescriptions.colorAttachments.size();
-    subpass.pColorAttachments = colorAttachmentReferences.data();
-    subpass.pDepthStencilAttachment = framebufferAttachmentDescriptions.depthAttachment.image == nullptr ? nullptr : &depthAttachmentReference;
 
     /*
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -66,23 +45,40 @@ void RenderPass::init(FramebufferAttachmentDescriptions framebufferAttachmentDes
     dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
     */
 
-    std::vector<VkAttachmentDescription> attachmentDescriptions = colorAttachmentDecriptions;
-    if (framebufferAttachmentDescriptions.depthAttachment.image != nullptr) attachmentDescriptions.push_back(depthAttachmentDecription);
+    std::vector<VkSubpassDescription> subpassDescs(subpasses.size());
+    std::vector<std::vector<VkAttachmentReference> > colorAttachmentReferences(subpasses.size());
+    std::vector<VkAttachmentReference> depthAttachmentReferences(subpasses.size());
+    for (uint8_t i = 0; i < subpasses.size(); i++) {
+        colorAttachmentReferences[i].resize(subpasses[i]->colorAttachments.size());
+        for (int j = 0; j < colorAttachmentReferences[i].size(); j++) {
+            colorAttachmentReferences[i][j] = subpasses[i]->colorAttachments[j].getAttachmentReference();
+        }
+
+        if (subpasses[i]->depthAttachment.index != -1) {
+            depthAttachmentReferences[i] = subpasses[i]->depthAttachment.getAttachmentReference();
+        }
+
+        subpassDescs[i] = {};
+        subpassDescs[i].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpassDescs[i].colorAttachmentCount = colorAttachmentReferences[i].size();
+        subpassDescs[i].pColorAttachments = colorAttachmentReferences[i].data();
+        subpassDescs[i].pDepthStencilAttachment = subpasses[i]->depthAttachment.index == -1 ? nullptr : &depthAttachmentReferences[i];
+    }
 
     VkRenderPassCreateInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachmentDescriptions.size());
+    renderPassInfo.attachmentCount = attachmentDescriptions.size();
     renderPassInfo.pAttachments = attachmentDescriptions.data();
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.subpassCount = subpassDescs.size();
+    renderPassInfo.pSubpasses = subpassDescs.data();
     renderPassInfo.dependencyCount = dependencies.size();
     renderPassInfo.pDependencies = dependencies.data();
 
-    VK_CHECK_RESULT(vkCreateRenderPass(g_device->device(), &renderPassInfo, nullptr, &renderPass))
+    VK_CHECK_RESULT(vkCreateRenderPass(g_vulkan_device->device(), &renderPassInfo, nullptr, &renderPass))
 }
 
-void RenderPass::destroy() {
-    vkDestroyRenderPass(g_device->device(), renderPass, nullptr);
+void Vulkan_RenderPass::destroy() {
+    vkDestroyRenderPass(g_vulkan_device->device(), renderPass, nullptr);
 }
 
 } //namespace lv
