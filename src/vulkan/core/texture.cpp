@@ -1,6 +1,7 @@
 #include "vulkan/lvcore/core/texture.hpp"
 
 #include <cmath>
+#include <cstring>
 
 #include <stb/stb_image.h>
 

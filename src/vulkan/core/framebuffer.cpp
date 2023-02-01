@@ -1,5 +1,7 @@
 #include "vulkan/lvcore/core/framebuffer.hpp"
 
+#include <cmath>
+
 #include "vulkan/lvcore/core/swap_chain.hpp"
 
 namespace lv {

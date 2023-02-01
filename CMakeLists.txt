@@ -37,7 +37,7 @@ endif ()
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 
 include_directories(
-    "/Users/samuliak/Documents/lava_window/include"
+    "/home/samuliak/Documents/lava_window/include"
     "external/vma/include"
     "external/stb/include"
     "include"
@@ -47,9 +47,6 @@ file(GLOB src
     "src/vulkan/core/*.cpp"
     "src/vulkan/libraries/*.cpp"
     "src/vulkan/window/*.cpp"
-    "src/metal/core/*.cpp"
-    "src/metal/libraries/*.cpp"
-    "src/metal/window/*.cpp"
     "src/filesystem/*.cpp"
     "src/libraries/*.cpp"
 )
@@ -62,7 +59,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION 1)
 find_library(
     LVND_LIB
     NAMES lvnd liblvnd
-    HINTS "/Users/samuliak/Documents/lava_window/lib"
+    HINTS "/home/samuliak/Documents/lava_window/lib"
     NO_DEFAULT_PATH
 )
 
@@ -83,8 +80,15 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 if (APPLE)
+    file(GLOB metalSrc
+        "src/metal/core/*.cpp"
+        "src/metal/libraries/*.cpp"
+        "src/metal/window/*.cpp"
+    )
+
     target_sources(${PROJECT_NAME} PRIVATE
         src/metal/core/dispatch_data_bridge.mm
+        ${metalSrc}
     )
 
     find_library(NS_FOUNDATION_LIB Foundation)
