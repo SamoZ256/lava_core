@@ -11,49 +11,12 @@
 
 #include "uniform_buffer.hpp"
 #include "sampler.hpp"
-
-//Macros
-//#define GET_SHADER_LAYOUT(shaderType) g_descriptorManager->shaderLayouts[shaderType]
-//#define GET_DESCRIPTOR_SET_LAYOUT(shaderType, layoutIndex) g_descriptorManager->shaderLayouts[shaderType].layouts[layoutIndex]
+#include "pipeline_layout.hpp"
 
 namespace lv {
-
-class Vulkan_DescriptorSet;
-
-class Vulkan_DescriptorSetLayout {
-public:
-    Vulkan_DescriptorSetLayout() = default;
-    
-    void destroy();
-
-    //DescriptorSetLayout(const DescriptorSetLayout&) = delete;
-    Vulkan_DescriptorSetLayout& operator=(const Vulkan_DescriptorSetLayout&) = delete;
-
-    void addBinding(
-            uint32_t binding,
-            VkDescriptorType descriptorType,
-            VkShaderStageFlags stageFlags);
-    
-    VkDescriptorSetLayout descriptorSetLayout;
-    std::vector<VkDescriptorSetLayoutBinding> bindings;
-
-    void init();
-};
-
-class Vulkan_PipelineLayout {
-public:
-    std::vector<Vulkan_DescriptorSetLayout> descriptorSetLayouts;
-    VkPipelineLayout pipelineLayout;
-    std::vector<VkPushConstantRange> pushConstantRanges;
-
-    void init();
-
-    void destroy();
-};
  
 class Vulkan_DescriptorWriter {
 public:
-    //uint8_t layouts;
     Vulkan_PipelineLayout& pipelineLayout;
     uint8_t layoutIndex;
     std::vector<VkWriteDescriptorSet> writes;
@@ -86,8 +49,6 @@ public:
 
     Vulkan_DescriptorSet(Vulkan_PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
 
-    //void destroy();
-
     void init();
 
     void destroy();
@@ -104,7 +65,7 @@ public:
 };
 
 struct Vulkan_DescriptorPoolCreateInfo {
-	//uint16_t pipelineLayoutCount;
+    uint32_t maxSets = 1024;
 	std::map<VkDescriptorType, uint16_t> poolSizes = {
 		{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 4},
     	{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4}
@@ -121,8 +82,8 @@ public:
     uint32_t maxSets = 1024;
     VkDescriptorPoolCreateFlags poolFlags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
-        std::map<VkDescriptorType, uint16_t> poolSizesBegin;
-        std::map<VkDescriptorType, uint16_t> poolSizes;
+    std::map<VkDescriptorType, uint16_t> poolSizesBegin;
+    std::map<VkDescriptorType, uint16_t> poolSizes;
 
     Vulkan_DescriptorPool(Vulkan_DescriptorPoolCreateInfo& createInfo);
 
@@ -141,51 +102,7 @@ public:
     void recreate();
 };
 
-/*
-class DescriptorManager {
-public:
-	//static constexpr uint8_t SHADER_COUNT = 1;
-
-	DescriptorPool descriptorPool;
-
-	std::map<VkDescriptorType, uint16_t> poolSizesBegin {
-		{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 64},
-		{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 512}
-	};
-
-	//std::map<VkDescriptorType, uint16_t> poolSizesBegin;
-	//std::map<VkDescriptorType, uint16_t> poolSizes;
-
-	//void init(uint16_t pipelineLayoutCount);
-
-	DescriptorManager(DescriptorManagerCreateInfo& createInfo);
-
-	void destroy();
-
-	void resetPool();
-
-	//void createDescriptorLayouts();
-
-	//PipelineLayout& getPipelineLayout(uint16_t shaderType) { return pipelineLayouts[shaderType]; }
-
-	//DescriptorSetLayout& getDescriptorSetLayout(uint16_t shaderType, uint8_t layoutIndex) { return pipelineLayouts[shaderType].layouts[layoutIndex]; }
-
-	//DescriptorSetLayout& getDescriptorLayout(uint16_t shaderType, uint8_t layoutIndex) { return shaderLayouts[shaderType].layouts[layoutIndex]; }
-
-//private:
-	//Layouts
-	//std::vector<PipelineLayout> pipelineLayouts;
-};
-*/
-
 extern Vulkan_DescriptorPool* g_vulkan_descriptorPool;
-
-/*
-class Desc {
-public:
-  static DescriptorManager* g_descriptorManager;
-};
-*/
 
 } //namespace lv
 

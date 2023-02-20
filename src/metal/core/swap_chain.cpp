@@ -9,9 +9,13 @@ namespace lv {
 Metal_SwapChain* g_metal_swapChain = nullptr;
 
 Metal_SwapChain::Metal_SwapChain(Metal_SwapChainCreateInfo& createInfo) {
+    g_metal_swapChain = this;
+
     maxFramesInFlight = createInfo.maxFramesInFlight;
 
     framebuffer.frameCount = 1;
+
+    commandBuffer.init();
 
     colorImage.frameCount = 1;
     colorImage.format = MTL::PixelFormatBGRA8Unorm_sRGB;
@@ -38,9 +42,7 @@ Metal_SwapChain::Metal_SwapChain(Metal_SwapChainCreateInfo& createInfo) {
 
     init(createInfo.window);
 
-    semaphore = dispatch_semaphore_create(maxFramesInFlight);
-
-    g_metal_swapChain = this;
+    semaphore.init();
 }
 
 void Metal_SwapChain::init(LvndWindow* window) {
@@ -77,7 +79,8 @@ void Metal_SwapChain::init(LvndWindow* window) {
 
 void Metal_SwapChain::destroy() {
     colorImage.destroy();
-    framebuffer.destroy();
+    //framebuffer.destroy();
+    semaphore.destroy();
 }
 
 void Metal_SwapChain::resize(LvndWindow* window) {
@@ -97,16 +100,14 @@ void Metal_SwapChain::acquireNextImage() {
     framebuffer.init(&renderPass);
 }
 
-void Metal_SwapChain::synchronize() {
-    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-    framebuffer.commandBuffer.commandBuffers[0]->addCompletedHandler(^(MTL::CommandBuffer* cmd) {
-        dispatch_semaphore_signal(g_metal_swapChain->semaphore);
-    });
-}
-
 void Metal_SwapChain::renderAndPresent() {
-    framebuffer.commandBuffer.commandBuffers[0]->presentDrawable(drawable);
-    framebuffer.render();
+    dispatch_semaphore_wait(semaphore.semaphore, DISPATCH_TIME_FOREVER);
+    commandBuffer.commandBuffers[crntFrame]->addCompletedHandler(^(MTL::CommandBuffer* cmd) {
+        dispatch_semaphore_signal(g_metal_swapChain->semaphore.semaphore);
+    });
+
+    commandBuffer.commandBuffers[crntFrame]->presentDrawable(drawable);
+    commandBuffer.submit();
     framebuffer.destroy();
 
     crntFrame = (crntFrame + 1) % maxFramesInFlight;

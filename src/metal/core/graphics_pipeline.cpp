@@ -5,10 +5,19 @@
 #include "metal/lvcore/core/common.hpp"
 
 #include "metal/lvcore/core/device.hpp"
+#include "metal/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
-Metal_GraphicsPipeline::Metal_GraphicsPipeline(Metal_GraphicsPipelineCreateInfo& createInfo) {
+void Metal_GraphicsPipeline::init(Metal_GraphicsPipelineCreateInfo& aCreateInfo) {
+    createInfo = aCreateInfo;
+
+    compile();
+
+    cullMode = createInfo.config.cullMode;
+}
+
+void Metal_GraphicsPipeline::compile() {
     MTL::RenderPipelineDescriptor* descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
     descriptor->setVertexFunction(createInfo.vertexShaderModule->function);
     descriptor->setFragmentFunction(createInfo.fragmentShaderModule->function);
@@ -31,12 +40,12 @@ Metal_GraphicsPipeline::Metal_GraphicsPipeline(Metal_GraphicsPipelineCreateInfo&
         //attachment->setPixelFormat(renderPassAttachment->format);
         if (renderPassAttachment->blendEnable) {
             attachment->setBlendingEnabled(true);
-            attachment->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
-            attachment->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-            attachment->setRgbBlendOperation(MTL::BlendOperationAdd);
-            attachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
-            attachment->setDestinationAlphaBlendFactor(MTL::BlendFactorOne);
-            attachment->setAlphaBlendOperation(MTL::BlendOperationMax);
+            attachment->setSourceRGBBlendFactor(renderPassAttachment->srcRgbBlendFactor);
+            attachment->setDestinationRGBBlendFactor(renderPassAttachment->dstRgbBlendFactor);
+            attachment->setRgbBlendOperation(renderPassAttachment->rgbBlendOp);
+            attachment->setSourceAlphaBlendFactor(renderPassAttachment->srcAlphaBlendFactor);
+            attachment->setDestinationAlphaBlendFactor(renderPassAttachment->dstAlphaBlendFactor);
+            attachment->setAlphaBlendOperation(renderPassAttachment->alphaBlendOp);
         }
     }
 
@@ -57,8 +66,11 @@ Metal_GraphicsPipeline::Metal_GraphicsPipeline(Metal_GraphicsPipelineCreateInfo&
     }*/
 
     depthStencilState = g_metal_device->device->newDepthStencilState(depthStencilDesc);
+}
 
-    cullMode = createInfo.config.cullMode;
+void Metal_GraphicsPipeline::recompile() {
+    destroy();
+    compile();
 }
 
 void Metal_GraphicsPipeline::bind() {
@@ -67,6 +79,9 @@ void Metal_GraphicsPipeline::bind() {
     g_metal_swapChain->activeRenderEncoder->setDepthStencilState(depthStencilState);
     g_metal_swapChain->activeRenderEncoder->setFrontFacingWinding(MTL::WindingCounterClockwise);
     g_metal_swapChain->activeRenderEncoder->setCullMode(cullMode);
+    g_metal_swapChain->activePipelineLayout = createInfo.pipelineLayout;
+    g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_VERTEX_INDEX] = createInfo.vertexShaderModule->shaderBundle;
+    g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_FRAGMENT_INDEX] = createInfo.fragmentShaderModule->shaderBundle;
 }
 
 void Metal_GraphicsPipeline::uploadPushConstants(void* data, uint16_t index, size_t size, LvShaderStage shaderStage) {

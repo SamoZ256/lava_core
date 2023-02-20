@@ -10,10 +10,22 @@
 namespace lv {
 
 typedef Vulkan_DescriptorSet DescriptorSet;
-typedef Vulkan_DescriptorSetLayout DescriptorSetLayout;
-typedef Vulkan_PipelineLayout PipelineLayout;
 typedef Vulkan_DescriptorPoolCreateInfo DescriptorPoolCreateInfo;
 typedef Vulkan_DescriptorPool DescriptorPool;
+
+} //namespace lv
+
+#endif
+
+#ifdef LV_BACKEND_METAL
+
+#include "metal/lvcore/core/descriptor_set.hpp"
+
+namespace lv {
+
+typedef Metal_DescriptorSet DescriptorSet;
+typedef Metal_DescriptorPoolCreateInfo DescriptorPoolCreateInfo;
+typedef Metal_DescriptorPool DescriptorPool;
 
 } //namespace lv
 

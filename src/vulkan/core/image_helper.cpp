@@ -36,8 +36,8 @@ VmaAllocation Vulkan_ImageHelper::createImage(uint16_t width, uint16_t height, V
     return allocation;
 }
 
-void Vulkan_ImageHelper::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask, uint8_t layerCount, uint8_t mipCount) {
-    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands();
+void Vulkan_ImageHelper::transitionImageLayout(uint8_t threadIndex, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask, uint8_t layerCount, uint8_t mipCount) {
+    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands(threadIndex);
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -113,6 +113,9 @@ void Vulkan_ImageHelper::transitionImageLayout(VkImage image, VkFormat format, V
     if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED) {
         barrier.srcAccessMask = 0;
         sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -151,7 +154,7 @@ void Vulkan_ImageHelper::transitionImageLayout(VkImage image, VkFormat format, V
         1, &barrier
     );
 
-    g_vulkan_device->endSingleTimeCommands(commandBuffer);
+    g_vulkan_device->endSingleTimeCommands(threadIndex, commandBuffer);
 }
 
 void Vulkan_ImageHelper::createImageView(VkImageView& imageView, VkImage& image, VkFormat format, VkImageAspectFlags aspectMask, VkImageViewType viewType, uint8_t baseLayer, uint8_t layerCount, uint8_t baseMip, uint8_t mipCount) {

@@ -14,13 +14,17 @@ struct Vulkan_ComputePipelineCreateInfo {
 class Vulkan_ComputePipeline {
 public:
     VkPipeline computePipeline;
-    Vulkan_CommandBuffer commandBuffer;
 
-    Vulkan_PipelineLayout& pipelineLayout;
+    Vulkan_ComputePipelineCreateInfo createInfo;
+    Vulkan_PipelineLayout* pipelineLayout;
 
-    Vulkan_ComputePipeline(Vulkan_ComputePipelineCreateInfo& createInfo);
+    void init(Vulkan_ComputePipelineCreateInfo& aCreateInfo);
 
     void destroy();
+
+    void compile();
+
+    void recompile();
 
     void bind();
 

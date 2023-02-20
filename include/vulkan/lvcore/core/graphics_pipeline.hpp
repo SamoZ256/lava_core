@@ -39,7 +39,6 @@ struct Vulkan_GraphicsPipelineCreateInfo {
     Vulkan_RenderPass* renderPass;
 
     Vulkan_VertexDescriptor* vertexDescriptor = nullptr;
-    //std::vector<VkPushConstantRange> pushConstantRanges;
 
     Vulkan_GraphicsPipelineConfig config;
 };
@@ -47,19 +46,18 @@ struct Vulkan_GraphicsPipelineCreateInfo {
 class Vulkan_GraphicsPipeline {
 public:
     VkPipeline graphicsPipeline;
-    //VkPipelineLayout pipelineLayout;
     
-    Vulkan_PipelineLayout& pipelineLayout;
-    //ShaderModule geometryShaderModule;
+    Vulkan_PipelineLayout* pipelineLayout;
 
-    //VkPushConstantRange* pushConstantRanges;
-    //uint8_t pushConstantRangeCount;
+    Vulkan_GraphicsPipelineCreateInfo createInfo;
 
-    //bool geometryShader = false;
-
-    Vulkan_GraphicsPipeline(Vulkan_GraphicsPipelineCreateInfo& createInfo);
+    void init(Vulkan_GraphicsPipelineCreateInfo& aCreateInfo);
 
     void destroy();
+
+    void compile();
+
+    void recompile();
 
     //void createPipelineLayout();
 

@@ -5,10 +5,13 @@
 
 #include "lvnd/lvnd.h"
 
+#include "lvcore/threading/thread_pool.hpp"
+
 namespace lv {
 
 struct Metal_DeviceCreateInfo {
     LvndWindow* window;
+    ThreadPool* threadPool;
 };
 
 class Metal_Device {
@@ -19,6 +22,8 @@ public:
     Metal_Device(Metal_DeviceCreateInfo& createInfo);
 
     void destroy();
+
+    void waitIdle() {}
 };
 
 extern Metal_Device* g_metal_device;

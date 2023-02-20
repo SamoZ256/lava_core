@@ -32,16 +32,16 @@ void Metal_Framebuffer::init(Metal_RenderPass* renderPass) {
             attachment->setStoreAction(renderPassAttachment->storeOp);
             attachment->setTexture(depthAttachment.imageView->imageViews[std::min(i, uint8_t(depthAttachment.imageView->frameCount - 1))]);
             //renderPass->setDepthAttachment(attachment);
-            maxArrayLength = std::max(maxArrayLength, depthAttachment.imageView->image->layerCount);
+            maxArrayLength = std::max(maxArrayLength, depthAttachment.imageView->layerCount);
         }
+
+        //TODO: add input attachments
+
         //std::cout << (int)maxArrayLength << std::endl;
         renderPasses[i]->setRenderTargetArrayLength(maxArrayLength);
 
         //commandBuffers[i] = g_metal_device->commandQueue->commandBuffer();
     }
-
-    commandBuffer.frameCount = frameCount;
-    commandBuffer.init();
 }
 
 void Metal_Framebuffer::destroy() {
@@ -49,23 +49,24 @@ void Metal_Framebuffer::destroy() {
         renderPasses[i]->release();
         //commandBuffers[i]->release();
     }
+    if (encoder != nullptr) {
+        encoder->release();
+        encoder = nullptr;
+    }
 }
 
 void Metal_Framebuffer::bind() {
-    uint8_t index = std::min(g_metal_swapChain->crntFrame, uint8_t(renderPasses.size() - 1));
-    commandBuffer.bind();
-    encoder = commandBuffer.createRenderCommandEncoder(renderPasses[index]);
+    uint8_t index = std::min(g_metal_swapChain->crntFrame, uint8_t(frameCount - 1));
+
+    if (encoder != nullptr)
+        encoder->release();
+    encoder = g_metal_swapChain->getActiveCommandBuffer()->renderCommandEncoder(renderPasses[index]);
     g_metal_swapChain->activeRenderEncoder = encoder;
     g_metal_swapChain->activeRenderPasses = renderPasses;
 }
 
 void Metal_Framebuffer::unbind() {
     encoder->endEncoding();
-}
-
-void Metal_Framebuffer::render() {
-    commandBuffer.submit();
-    encoder->release();
 }
 
 } //namespace lv

@@ -11,6 +11,12 @@ struct Vulkan_RenderPassAttachment {
     VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     VkAttachmentStoreOp storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     bool blendEnable = false;
+    VkBlendFactor srcRgbBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    VkBlendFactor dstRgbBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    VkBlendOp rgbBlendOp = VK_BLEND_OP_ADD;
+    VkBlendFactor srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    VkBlendFactor dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    VkBlendOp alphaBlendOp = VK_BLEND_OP_MAX;
     VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 

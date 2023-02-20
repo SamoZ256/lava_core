@@ -3,7 +3,7 @@
 
 #include "enums.hpp"
 
-#include "swap_chain.hpp"
+#include "image_view.hpp"
 
 namespace lv {
 
@@ -22,6 +22,8 @@ public:
     void destroy() { sampler->release(); }
 
     void bind(uint16_t index, LvShaderStage shaderStage = LV_SHADER_STAGE_FRAGMENT_BIT);
+
+    Metal_ImageInfo descriptorInfo(Metal_ImageView& imageView, LvImageLayout imageLayout = LV_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 };
 
 } //namespace lv

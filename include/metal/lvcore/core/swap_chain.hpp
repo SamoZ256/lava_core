@@ -3,12 +3,13 @@
 
 #include <stdexcept>
 
-#include <QuartzCore/QuartzCore.hpp>
-
 #define LVND_BACKEND_METAL
 #include "lvnd/lvnd.h"
 
 #include "framebuffer.hpp"
+#include "semaphore.hpp"
+#include "shader_bundle.hpp"
+#include "pipeline_layout.hpp"
 
 namespace lv {
 
@@ -27,13 +28,14 @@ public:
     Metal_Subpass subpass;
     Metal_RenderPass renderPass;
     Metal_Framebuffer framebuffer;
+    Metal_CommandBuffer commandBuffer;
     Metal_Image colorImage;
     Metal_ImageView colorImageView;
     //Image depthAttachment;
 
     LvndWindow* _window;
     CA::MetalDrawable* drawable;
-    dispatch_semaphore_t semaphore;
+    Metal_Semaphore semaphore;
 
     MTL::PixelFormat depthFormat = MTL::PixelFormatDepth32Float;
 
@@ -47,8 +49,6 @@ public:
 
     void acquireNextImage();
 
-    void synchronize();
-
     void renderAndPresent();
 
     MTL::CommandBuffer* getActiveCommandBuffer() { return activeCommandBuffer->commandBuffers[std::min(crntFrame, uint8_t(activeCommandBuffer->commandBuffers.size() - 1))]; }
@@ -59,10 +59,13 @@ public:
 
     uint32_t height() { return _height; }
 
+    //Currently active
     Metal_CommandBuffer* activeCommandBuffer = nullptr;
     MTL::RenderCommandEncoder* activeRenderEncoder = nullptr;
     MTL::ComputeCommandEncoder* activeComputeEncoder = nullptr;
     std::vector<MTL::RenderPassDescriptor*> activeRenderPasses;
+    Metal_PipelineLayout* activePipelineLayout;
+    Metal_ShaderBundle* activeShaderBundles[3] = {nullptr};
 
 private:
     uint32_t _width, _height;

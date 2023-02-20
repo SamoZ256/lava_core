@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <vulkan/vulkan.h>
+#include "semaphore.hpp"
 
 namespace lv {
 
@@ -11,17 +11,19 @@ class Vulkan_CommandBuffer {
 public:
     uint8_t frameCount = 0;
 
+    uint8_t threadIndex = 0;
+
     std::vector<VkCommandBuffer> commandBuffers;
 
     void init();
 
     void destroy();
 
-    void bind();
+    void bind(VkCommandBufferUsageFlags usage = 0);
 
     void unbind();
 
-    void submit();
+    void submit(Vulkan_Semaphore* waitSemaphore = nullptr, Vulkan_Semaphore* signalSemaphore = nullptr);
 };
 
 } //namespace lv

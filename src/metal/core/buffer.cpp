@@ -4,7 +4,7 @@
 
 namespace lv {
 
-void Metal_Buffer::init(void* data, size_t aSize) {
+void Metal_Buffer::init(uint8_t threadIndex, void* data, size_t aSize) {
     size = aSize;
 
     MTL::Buffer* stagingBuffer = g_metal_device->device->newBuffer(size, MTL::ResourceStorageModeShared);

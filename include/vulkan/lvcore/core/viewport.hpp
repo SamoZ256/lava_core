@@ -12,6 +12,8 @@ public:
 	uint32_t totalWidth = 0;
 	uint32_t totalHeight = 0;
 
+	Vulkan_Viewport() {}
+
 	Vulkan_Viewport(int32_t x, int32_t y, uint32_t width, uint32_t height);
 
 	void setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height);

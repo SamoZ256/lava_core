@@ -28,7 +28,7 @@ public:
 
     //VkDescriptorSetLayoutBinding getBinding(uint8_t binding);
 
-    Vulkan_BufferInfo descriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    Vulkan_BufferInfo descriptorInfo(/*VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0*/);
 
     void upload(void* uploadData);
 };

@@ -7,12 +7,15 @@
 namespace lv {
 
 void Vulkan_RenderPass::init() {
-    std::vector<VkAttachmentDescription> attachmentDescriptions(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1));
+    std::vector<VkAttachmentDescription> attachmentDescriptions(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1) + inputAttachments.size());
     for (int i = 0; i < colorAttachments.size(); i++) {
         attachmentDescriptions[colorAttachments[i].index] = colorAttachments[i].getAttachmentDescription();
     }
     if (depthAttachment.index != -1) {
         attachmentDescriptions[depthAttachment.index] = depthAttachment.getAttachmentDescription();
+    }
+    for (int i = 0; i < inputAttachments.size(); i++) {
+        attachmentDescriptions[inputAttachments[i].index] = inputAttachments[i].getAttachmentDescription();
     }
 
     /*
@@ -48,6 +51,7 @@ void Vulkan_RenderPass::init() {
     std::vector<VkSubpassDescription> subpassDescs(subpasses.size());
     std::vector<std::vector<VkAttachmentReference> > colorAttachmentReferences(subpasses.size());
     std::vector<VkAttachmentReference> depthAttachmentReferences(subpasses.size());
+    std::vector<std::vector<VkAttachmentReference> > inputAttachmentReferences(subpasses.size());
     for (uint8_t i = 0; i < subpasses.size(); i++) {
         colorAttachmentReferences[i].resize(subpasses[i]->colorAttachments.size());
         for (int j = 0; j < colorAttachmentReferences[i].size(); j++) {
@@ -58,11 +62,18 @@ void Vulkan_RenderPass::init() {
             depthAttachmentReferences[i] = subpasses[i]->depthAttachment.getAttachmentReference();
         }
 
+        inputAttachmentReferences[i].resize(subpasses[i]->inputAttachments.size());
+        for (int j = 0; j < inputAttachmentReferences[i].size(); j++) {
+            inputAttachmentReferences[i][j] = subpasses[i]->inputAttachments[j].getAttachmentReference();
+        }
+
         subpassDescs[i] = {};
         subpassDescs[i].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpassDescs[i].colorAttachmentCount = colorAttachmentReferences[i].size();
         subpassDescs[i].pColorAttachments = colorAttachmentReferences[i].data();
         subpassDescs[i].pDepthStencilAttachment = subpasses[i]->depthAttachment.index == -1 ? nullptr : &depthAttachmentReferences[i];
+        subpassDescs[i].inputAttachmentCount = inputAttachmentReferences[i].size();
+        subpassDescs[i].pInputAttachments = inputAttachmentReferences[i].data();
     }
 
     VkRenderPassCreateInfo renderPassInfo = {};

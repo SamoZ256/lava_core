@@ -6,10 +6,10 @@
 
 namespace lv {
 
-void Vulkan_Buffer::init(void* data, uint32_t aSize) {
+void Vulkan_Buffer::init(uint8_t threadIndex, void* data, uint32_t aSize) {
 	size = aSize;
 
-	allocation = createRenderBuffer(size, usage, buffer, data, allocationFlags);
+	allocation = createRenderBuffer(threadIndex, size, usage, buffer, data, allocationFlags);
 	/*
     VkDeviceSize vertexBufferSize = verticesSize;
 
@@ -29,7 +29,7 @@ void Vulkan_Buffer::init(void* data, uint32_t aSize) {
     */
 }
 
-VmaAllocation Vulkan_Buffer::createRenderBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer &buffer, void* bufferData, VmaAllocationCreateFlags allocationFlags) {
+VmaAllocation Vulkan_Buffer::createRenderBuffer(uint8_t threadIndex, VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer &buffer, void* bufferData, VmaAllocationCreateFlags allocationFlags) {
     VkBuffer stagingBuffer;
 
     //VmaAllocationInfo allocInfo;
@@ -43,7 +43,7 @@ VmaAllocation Vulkan_Buffer::createRenderBuffer(VkDeviceSize size, VkBufferUsage
 
     VmaAllocation allocation = Vulkan_BufferHelper::createBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage, buffer, nullptr, 0, allocationFlags); //VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 
-    Vulkan_BufferHelper::copyBuffer(stagingBuffer, buffer, size);
+    Vulkan_BufferHelper::copyBuffer(threadIndex, stagingBuffer, buffer, size);
 
     vmaDestroyBuffer(g_vulkan_allocator->allocator, stagingBuffer, stagingAllocation);
 

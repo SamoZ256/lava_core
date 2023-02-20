@@ -9,14 +9,16 @@
 
 namespace lv {
 
-void Metal_Texture::init() {
+void Metal_Texture::init(uint8_t threadIndex) {
+    /*
     size_t size = width * height * 4 * 1;
     MTL::Buffer* stagingBuffer = g_metal_device->device->newBuffer(size, MTL::ResourceStorageModeShared);
     memcpy(stagingBuffer->contents(), textureData, size);
+    */
     //stagingBuffer->didModifyRange(NS::Range::Make(0, stagingBuffer->length()));
 
     image.frameCount = 1;
-    image.format = MTL::PixelFormatRGBA8Unorm_sRGB;
+    image.format = format;
     image.usage = MTL::TextureUsageShaderRead;
     image.memoryProperties = MTL::StorageModePrivate;
     if (generateMipmaps) {
@@ -26,10 +28,12 @@ void Metal_Texture::init() {
     //std::cout << (int)width << ", " << (int)height << std::endl;
     image.init(width, height);
     //image.images[0]->replaceRegion(MTL::Region(0, 0, 0, width, height, 1), 0, textureData, width * 4);
+    imageView.init(&image);
 
-    Metal_Buffer::copyBufferToImage(stagingBuffer, image.images[0], width, height);
+   //Metal_Buffer::copyBufferToImage(stagingBuffer, image.images[0], width, height);
 
-    stagingBuffer->release();
+    //stagingBuffer->release();
+    image.fillWithData(threadIndex, textureData, 4); //TODO: remove this hardcoding (this is what prevents using FLOAT32 format for skybox)
 
     if (generateMipmaps)
         image.generateMipmaps();

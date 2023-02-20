@@ -26,7 +26,7 @@ public:
     Vulkan_ImageView imageView;
     Vulkan_Sampler sampler;
 
-    //VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+    VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
     VkFilter filter = VK_FILTER_LINEAR;
 
     bool generateMipmaps = false;
@@ -36,7 +36,7 @@ public:
     uint16_t width, height;
     void* textureData;
 
-    void init(/*const char* aFilename, TextureData* aTextureData = nullptr*//*, VkFormat aFormat = VK_FORMAT_R8G8B8A8_SRGB*/);
+    void init(uint8_t threadIndex/*const char* aFilename, TextureData* aTextureData = nullptr*//*, VkFormat aFormat = VK_FORMAT_R8G8B8A8_SRGB*/);
 
     void load(const char* aFilename);
 

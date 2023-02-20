@@ -2,22 +2,29 @@
 #define LV_METAL_COMPUTE_PIPELINE_H
 
 #include "shader_module.hpp"
+#include "pipeline_layout.hpp"
 
 namespace lv {
 
 struct Metal_ComputePipelineCreateInfo {
     Metal_ShaderModule* computeShaderModule;
+    Metal_PipelineLayout* pipelineLayout;
 };
 
 class Metal_ComputePipeline {
 public:
-    MTL::ComputePipelineState* computePipeline;
-    Metal_CommandBuffer commandBuffer;
+    MTL::ComputePipelineState* computePipeline = nullptr;
     MTL::ComputeCommandEncoder* encoder;
 
-    Metal_ComputePipeline(Metal_ComputePipelineCreateInfo& createInfo);
+    Metal_ComputePipelineCreateInfo createInfo;
+
+    void init(Metal_ComputePipelineCreateInfo& aCreateInfo);
 
     void destroy();
+
+    void compile();
+
+    void recompile();
 
     void bind();
 

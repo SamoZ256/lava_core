@@ -4,6 +4,7 @@
 #include "shader_module.hpp"
 #include "framebuffer.hpp"
 #include "vertex_descriptor.hpp"
+#include "pipeline_layout.hpp"
 
 namespace lv {
 
@@ -17,7 +18,8 @@ struct Metal_GraphicsPipelineConfig {
 struct Metal_GraphicsPipelineCreateInfo {
     Metal_ShaderModule* vertexShaderModule;
     Metal_ShaderModule* fragmentShaderModule;
-    Metal_RenderPass* renderPass = nullptr;
+    Metal_PipelineLayout* pipelineLayout;
+    Metal_RenderPass* renderPass;
 
     Metal_VertexDescriptor* vertexDescriptor = nullptr;
 
@@ -31,9 +33,15 @@ public:
     MTL::DepthStencilState* depthStencilState;
     MTL::CullMode cullMode;
 
-    Metal_GraphicsPipeline(Metal_GraphicsPipelineCreateInfo& createInfo);
+    Metal_GraphicsPipelineCreateInfo createInfo;
+
+    void init(Metal_GraphicsPipelineCreateInfo& aCreateInfo);
 
     void destroy() { graphicsPipeline->release(); }
+
+    void compile();
+
+    void recompile();
 
     void bind();
 

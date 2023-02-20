@@ -30,8 +30,9 @@ void Metal_Viewport::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t 
 }
 
 void Metal_Viewport::bind() {
-    g_metal_swapChain->activeRenderEncoder->setViewport(viewport);
-    g_metal_swapChain->activeRenderEncoder->setScissorRect(scissor);
+    //TODO: fix this
+    //g_metal_swapChain->activeRenderEncoder->setViewport(viewport);
+    //g_metal_swapChain->activeRenderEncoder->setScissorRect(scissor);
 }
 
 } //namespace lv

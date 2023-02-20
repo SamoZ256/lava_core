@@ -13,6 +13,12 @@ struct Metal_RenderPassAttachment {
     MTL::LoadAction loadOp = MTL::LoadActionDontCare;
     MTL::StoreAction storeOp = MTL::StoreActionStore;
     bool blendEnable = false;
+    MTL::BlendFactor srcRgbBlendFactor = MTL::BlendFactorSourceAlpha;
+    MTL::BlendFactor dstRgbBlendFactor = MTL::BlendFactorOneMinusSourceAlpha;
+    MTL::BlendOperation rgbBlendOp = MTL::BlendOperationAdd;
+    MTL::BlendFactor srcAlphaBlendFactor = MTL::BlendFactorOne;
+    MTL::BlendFactor dstAlphaBlendFactor = MTL::BlendFactorOne;
+    MTL::BlendOperation alphaBlendOp = MTL::BlendOperationMax;
     LvImageLayout initialLayout = LV_IMAGE_LAYOUT_UNDEFINED;
     LvImageLayout finalLayout = LV_IMAGE_LAYOUT_UNDEFINED;
 };

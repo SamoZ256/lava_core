@@ -6,38 +6,27 @@
 
 namespace lv {
 
-Vulkan_GraphicsPipeline::Vulkan_GraphicsPipeline(Vulkan_GraphicsPipelineCreateInfo& createInfo) : pipelineLayout(*createInfo.pipelineLayout)/*, pushConstantRanges(createInfo.pushConstantRanges.data()), pushConstantRangeCount(createInfo.pushConstantRanges.size())*/ {
-    //Available shaders
-    //geometryShader = (geometryFilename != nullptr);
-    //createPipelineLayout(descriptorSetLayouts);
+void Vulkan_GraphicsPipeline::init(Vulkan_GraphicsPipelineCreateInfo& aCreateInfo) {
+    createInfo = aCreateInfo;
+    pipelineLayout = createInfo.pipelineLayout;
 
-    //createPipelineLayout();
-
-    //bool renderPassSet = (createInfo.renderPass != nullptr);
     if (createInfo.renderPass == nullptr)
         throw std::runtime_error("You must specify a valid render pass");
+    
+    compile();
+}
+
+void Vulkan_GraphicsPipeline::destroy() {
+    vkDestroyPipeline(g_vulkan_device->device(), graphicsPipeline, nullptr);
+}
+
+void Vulkan_GraphicsPipeline::compile() {
     Vulkan_PipelineConfigInfo configInfo = defaultPipelineConfigInfo(createInfo.config, createInfo);
-    //unsigned int depthTest = createInfo.config.depthTest;//(framebufferSet ? (createInfo.framebuffer->depthAttachment == nullptr ? VK_FALSE : VK_TRUE) : VK_TRUE);
-    /*
-    if (renderPassSet) {
-        if (!createInfo.renderPass->hasDepthAttachment)
-            depthTest = VK_FALSE;
-    } else depthTest = VK_FALSE;
-    */
     configInfo.depthStencilInfo.depthTestEnable = createInfo.config.depthTestEnable;
     configInfo.depthStencilInfo.depthWriteEnable = (createInfo.config.depthTestEnable == VK_TRUE ? createInfo.config.depthWriteEnable : VK_FALSE);
-    //std::cout << "Depth write: " << configInfo.depthStencilInfo.depthWriteEnable << std::endl;
 
     configInfo.renderPass = createInfo.renderPass->renderPass;
-    configInfo.pipelineLayout = pipelineLayout.pipelineLayout;
-
-    //std::string vertexCode = readFile(createInfo.vertexFilename);
-    //std::string fragmentCode = readFile(createInfo.fragmentFilename);
-    //std::string geometryCode = geometryShader ? readFile(geometryFilename) : "";
-
-    //createShaderModule(vertexCode, &vertexShaderModule, VK_SHADER_STAGE_VERTEX_BIT, createInfo.vertexConstants, createInfo.vertexConstantsSize, createInfo.vertexConstantsData);
-    //createShaderModule(fragmentCode, &fragmentShaderModule, VK_SHADER_STAGE_FRAGMENT_BIT, createInfo.fragmentConstants, createInfo.fragmentConstantsSize, createInfo.fragmentConstantsData);
-    //if (geometryShader) createShaderModule(geometryCode, &geometryShaderModule, VK_SHADER_STAGE_GEOMETRY_BIT);
+    configInfo.pipelineLayout = pipelineLayout->pipelineLayout;
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -48,33 +37,9 @@ Vulkan_GraphicsPipeline::Vulkan_GraphicsPipeline(Vulkan_GraphicsPipelineCreateIn
         vertexInputInfo.pVertexAttributeDescriptions = createInfo.vertexDescriptor->vertexDesc.attributeDescriptions.data();
     }
 
-    /*
-    std::vector<VkVertexInputBindingDescription> bindingDescriptions;
-    std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-
-    if (vertexType == VERTEX_TYPE_MAIN) {
-        bindingDescriptions = Vertex::getBindingDescriptions();
-        attributeDescriptions = Vertex::getAttributeDescriptions();
-
-        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
-        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-        vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
-    } else if (vertexType == VERTEX_TYPE_NONE) {
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputInfo.vertexBindingDescriptionCount = 0;
-        vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-        vertexInputInfo.pVertexBindingDescriptions = nullptr;
-    } else {
-        throw std::invalid_argument("Unsupported vertex type");
-    }
-    */
-    //std::cout << "VECTOR SIZE: " << attributeDescriptions.size() << std::endl;
-
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages(2);
     shaderStages[0] = createInfo.vertexShaderModule->stageInfo;
     shaderStages[1] = createInfo.fragmentShaderModule->stageInfo;
-    //if (geometryShader) shaderStages.push_back(geometryShaderModule.stageInfo);
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -96,23 +61,20 @@ Vulkan_GraphicsPipeline::Vulkan_GraphicsPipeline(Vulkan_GraphicsPipelineCreateIn
     pipelineInfo.basePipelineIndex = -1;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-    VK_CHECK_RESULT(vkCreateGraphicsPipelines(g_vulkan_device->device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline))
+    VK_CHECK_RESULT(vkCreateGraphicsPipelines(g_vulkan_device->device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline));
 }
 
-void Vulkan_GraphicsPipeline::destroy() {
-    //vkDestroyPipelineLayout(g_metal_device->device(), pipelineLayout, nullptr);
-    //vkDestroyShaderModule(g_metal_device->device(), vertexShaderModule.ID, nullptr);
-    //vkDestroyShaderModule(g_metal_device->device(), fragmentShaderModule.ID, nullptr);
-    //if (geometryShader) vkDestroyShaderModule(g_metal_device->device(), geometryShaderModule.ID, nullptr);
-    vkDestroyPipeline(g_vulkan_device->device(), graphicsPipeline, nullptr);
+void Vulkan_GraphicsPipeline::recompile() {
+    destroy();
+    compile();
 }
 
 void Vulkan_GraphicsPipeline::uploadPushConstants(void* data, uint8_t index) {
     vkCmdPushConstants(g_vulkan_swapChain->getActiveCommandBuffer(),
-                      pipelineLayout.pipelineLayout,
-                      pipelineLayout.pushConstantRanges[index].stageFlags,
-                      pipelineLayout.pushConstantRanges[index].offset,
-                      pipelineLayout.pushConstantRanges[index].size, data);
+                      pipelineLayout->pipelineLayout,
+                      pipelineLayout->pushConstantRanges[index].stageFlags,
+                      pipelineLayout->pushConstantRanges[index].offset,
+                      pipelineLayout->pushConstantRanges[index].size, data);
 }
 
 void Vulkan_GraphicsPipeline::bind() {
@@ -168,12 +130,12 @@ Vulkan_PipelineConfigInfo Vulkan_GraphicsPipeline::defaultPipelineConfigInfo(Vul
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
         VK_COLOR_COMPONENT_A_BIT;
         configInfo.colorBlendAttachments[index].blendEnable = colorAttachments[i].blendEnable;
-        configInfo.colorBlendAttachments[index].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        configInfo.colorBlendAttachments[index].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        configInfo.colorBlendAttachments[index].colorBlendOp = VK_BLEND_OP_ADD;
-        configInfo.colorBlendAttachments[index].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        configInfo.colorBlendAttachments[index].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        configInfo.colorBlendAttachments[index].alphaBlendOp = VK_BLEND_OP_MAX;
+        configInfo.colorBlendAttachments[index].srcColorBlendFactor = colorAttachments[i].srcRgbBlendFactor;
+        configInfo.colorBlendAttachments[index].dstColorBlendFactor = colorAttachments[i].dstRgbBlendFactor;
+        configInfo.colorBlendAttachments[index].colorBlendOp = colorAttachments[i].rgbBlendOp;
+        configInfo.colorBlendAttachments[index].srcAlphaBlendFactor = colorAttachments[i].srcAlphaBlendFactor;
+        configInfo.colorBlendAttachments[index].dstAlphaBlendFactor = colorAttachments[i].dstAlphaBlendFactor;
+        configInfo.colorBlendAttachments[index].alphaBlendOp = colorAttachments[i].alphaBlendOp;
     }
 
     //Color blending (info)

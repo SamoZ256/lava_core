@@ -14,6 +14,7 @@
 
 #include "framebuffer.hpp"
 #include "device.hpp"
+#include "semaphore.hpp"
 
 namespace lv {
 
@@ -82,8 +83,6 @@ public:
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
-	void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers);
-
 	void renderFullscreenTriangle() { vkCmdDraw(getActiveCommandBuffer(), 3, 1, 0, 0); }
 
 	//VkFormat swapChainImageFormat;
@@ -101,6 +100,7 @@ public:
 	Vulkan_Subpass subpass;
 	Vulkan_RenderPass renderPass;
 	Vulkan_Framebuffer framebuffer;
+	Vulkan_CommandBuffer commandBuffer;
 	Vulkan_Image image;
 	Vulkan_ImageView imageView;
 	//Image depthImage;
@@ -116,12 +116,12 @@ public:
 	VkSwapchainKHR swapChain;
 	VkSwapchainKHR oldSwapChain = VK_NULL_HANDLE;
 
-	std::vector<VkSemaphore> imageAvailableSemaphores;
-	std::vector<VkSemaphore> renderFinishedSemaphores;
+	Vulkan_Semaphore imageAvailableSemaphore;
+	Vulkan_Semaphore renderFinishedSemaphore;
 	std::vector<VkFence> inFlightFences;
 	std::vector<VkFence> imagesInFlight;
 
-	//Current active
+	//Currently active
 	Vulkan_CommandBuffer* activeCommandBuffer;
 	VkPipelineBindPoint pipelineBindPoint;
 };

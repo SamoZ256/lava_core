@@ -43,6 +43,12 @@ void Vulkan_Framebuffer::init(Vulkan_RenderPass* aRenderPass) {
         width = depthAttachment.imageView->image->width / scale;
         height = depthAttachment.imageView->image->height / scale;
     }
+    for (auto& inputAttachment : inputAttachments) {
+        maxLayerCount = std::max((uint16_t)inputAttachment.imageView->layerCount, maxLayerCount);
+        uint16_t scale = pow(2, inputAttachment.imageView->baseMip);
+        width = inputAttachment.imageView->image->width / scale;
+        height = inputAttachment.imageView->image->height / scale;
+    }
 
     //Framebuffer
     //std::cout << (int)maxLayerCount << std::endl;
@@ -58,6 +64,10 @@ void Vulkan_Framebuffer::init(Vulkan_RenderPass* aRenderPass) {
             //uint8_t index = i < depthAttachment.imageView->imageViews.size() ? i : 0;
             imageViews.push_back(depthAttachment.imageView->imageViews[i]);
         }
+        for (auto& inputAttachment : inputAttachments) {
+            //uint8_t index = i < attachment->imageView->imageViews.size() ? i : 0;
+            imageViews.push_back(inputAttachment.imageView->imageViews[i]);
+        }
 
         VkFramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -71,58 +81,43 @@ void Vulkan_Framebuffer::init(Vulkan_RenderPass* aRenderPass) {
         VK_CHECK_RESULT(vkCreateFramebuffer(g_vulkan_device->device(), &framebufferInfo, nullptr, &framebuffers[i]))
     }
 
-    commandBuffer.frameCount = frameCount;
-    commandBuffer.init();
-
     //Clear values
-    clearValues.resize(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1));
+    clearValues.resize(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1) + inputAttachments.size());
     for (auto& colorAttachment : colorAttachments) {
         clearValues[colorAttachment.index].color = {0.0f, 0.0f, 0.0f, 0.0f};
     }
+
     if (depthAttachment.index != -1)
         clearValues[depthAttachment.index].depthStencil = {1.0f, 0};
+    
+    for (auto& inputAttachment : inputAttachments) {
+        clearValues[inputAttachment.index].color = {0.0f, 0.0f, 0.0f, 0.0f};
+    }
 }
 
-void Vulkan_Framebuffer::destroyToRecreate() {
+void Vulkan_Framebuffer::destroy() {
     for (auto& framebuffer : framebuffers) {
         vkDestroyFramebuffer(g_vulkan_device->device(), framebuffer, nullptr);
     }
 }
 
-void Vulkan_Framebuffer::destroy() {
-    commandBuffer.destroy();
-    destroyToRecreate();
-}
-
 void Vulkan_Framebuffer::bind() {
-    //g_metal_swapChain->activeRenderPass = &renderPass->renderPass;
-    //g_metal_swapChain->activeCommandBuffers = &commandBuffers;
-    uint8_t index = g_vulkan_swapChain->imageIndex;
-
-    //std::cout << (int8_t)index << " : " << commandBuffers.size() << std::endl;
-    commandBuffer.bind();
-
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = renderPass->renderPass;
-    renderPassInfo.framebuffer = framebuffers[index];
+    renderPassInfo.framebuffer = framebuffers[g_vulkan_swapChain->imageIndex];
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = VkExtent2D{width, height};
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
 
-    vkCmdBeginRenderPass(commandBuffer.commandBuffers[index], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(g_vulkan_swapChain->getActiveCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void Vulkan_Framebuffer::unbind() {
     uint8_t index = g_vulkan_swapChain->imageIndex;
 
-    vkCmdEndRenderPass(commandBuffer.commandBuffers[index]);
-    commandBuffer.unbind();
-}
-
-void Vulkan_Framebuffer::render() {
-    commandBuffer.submit();
+    vkCmdEndRenderPass(g_vulkan_swapChain->getActiveCommandBuffer());
 }
 
 /*

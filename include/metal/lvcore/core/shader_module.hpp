@@ -5,7 +5,7 @@
 
 #include "enums.hpp"
 
-#include "swap_chain.hpp"
+#include "shader_bundle.hpp"
 
 namespace lv {
 
@@ -13,14 +13,19 @@ dispatch_data_t convertStringToDispatchData(std::string str);
 
 struct Metal_SpecializationMapEntry {
     uint32_t constantID;
-    void* data;
+    uint32_t offset;
+    size_t size;
     MTL::DataType dataType;
 };
 
 struct Metal_ShaderModuleCreateInfo {
+    Metal_ShaderBundle* shaderBundle;
+    LvShaderStage shaderStage;
     std::string source;
     const char* functionName = "main0";
     std::vector<Metal_SpecializationMapEntry> specializationConstants;
+    void* constantsData = nullptr;
+    size_t constantsSize;
 };
 
 class Metal_ShaderModule {
@@ -28,9 +33,16 @@ public:
     MTL::Library* library;
     MTL::Function* function;
 
-    Metal_ShaderModule(Metal_ShaderModuleCreateInfo& createInfo);
+    Metal_ShaderModuleCreateInfo createInfo;
+    Metal_ShaderBundle* shaderBundle;
+
+    void init(Metal_ShaderModuleCreateInfo& aCreateInfo);
 
     void destroy();
+
+    void compile();
+
+    void recompile();
 };
 
 } //namespace lv

@@ -26,4 +26,14 @@ void Metal_ImageView::init(Metal_Image* aImage) {
     }
 }
 
+Metal_ImageInfo Metal_ImageView::descriptorInfo(LvDescriptorType descriptorType, LvImageLayout imageLayout) {
+    Metal_ImageInfo info;
+    info.imageViews.resize(frameCount);
+    for (uint8_t i = 0; i < frameCount; i++)
+        info.imageViews[i] = imageViews[i];
+    info.descriptorType = descriptorType;
+
+    return info;
+}
+
 } //namespace lv

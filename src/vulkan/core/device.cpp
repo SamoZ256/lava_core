@@ -9,18 +9,22 @@ Vulkan_Device* g_vulkan_device = nullptr;
 
 // class member functions
 Vulkan_Device::Vulkan_Device(Vulkan_DeviceCreateInfo& createInfo) {
+	maxThreadCount = createInfo.threadPool->maxThreadCount;
 	//window.createWindowSurface(instance, &surface_);
 	VK_CHECK_RESULT(lvndVulkanCreateWindowSurface(createInfo.window, g_vulkan_instance->instance, &surface_))
 	pickPhysicalDevice();
 	createLogicalDevice();
-	createCommandPool();
+	commandPools.resize(maxThreadCount);
+	for (uint8_t i = 0; i < maxThreadCount; i++)
+		createCommandPool(i);
 
 	g_vulkan_device = this;
 }
 
 void Vulkan_Device::destroy() {
     std::cout << "Destroying device" << std::endl;
-	vkDestroyCommandPool(device_, commandPool, nullptr);
+	for (uint8_t i = 0; i < maxThreadCount; i++)
+		vkDestroyCommandPool(device_, commandPools[i], nullptr);
 	vkDestroyDevice(device_, nullptr);
 
 	vkDestroySurfaceKHR(g_vulkan_instance->instance, surface_, nullptr);
@@ -98,16 +102,15 @@ void Vulkan_Device::createLogicalDevice() {
 	vkGetDeviceQueue(device_, indices.presentFamily, 0, &presentQueue_);
 }
 
-void Vulkan_Device::createCommandPool() {
+void Vulkan_Device::createCommandPool(uint8_t index) {
 	QueueFamilyIndices queueFamilyIndices = findPhysicalQueueFamilies();
 
 	VkCommandPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
-	poolInfo.flags =
-		VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-	VK_CHECK_RESULT(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool))
+	VK_CHECK_RESULT(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPools[index]))
 }
 
 bool Vulkan_Device::isDeviceSuitable(VkPhysicalDevice device) {
@@ -226,11 +229,11 @@ uint32_t Vulkan_Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlag
 	throw std::runtime_error("Failed to find suitable memory type");
 }
 
-VkCommandBuffer Vulkan_Device::beginSingleTimeCommands() {
+VkCommandBuffer Vulkan_Device::beginSingleTimeCommands(uint8_t threadIndex) {
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = commandPool;
+	allocInfo.commandPool = commandPools[threadIndex];
 	allocInfo.commandBufferCount = 1;
 
 	VkCommandBuffer commandBuffer;
@@ -245,7 +248,7 @@ VkCommandBuffer Vulkan_Device::beginSingleTimeCommands() {
 	return commandBuffer;
 }
 
-void Vulkan_Device::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+void Vulkan_Device::endSingleTimeCommands(uint8_t threadIndex, VkCommandBuffer commandBuffer) {
 	vkEndCommandBuffer(commandBuffer);
 
 	VkSubmitInfo submitInfo{};
@@ -256,9 +259,22 @@ void Vulkan_Device::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 	vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
 	vkQueueWaitIdle(graphicsQueue_);
 
-	vkFreeCommandBuffers(device_, commandPool, 1, &commandBuffer);
+	vkFreeCommandBuffers(device_, commandPools[threadIndex], 1, &commandBuffer);
 }
 
+/*
+void Vulkan_Device::createCommandBuffers(uint8_t threadIndex, std::vector<VkCommandBuffer>& commandBuffers) {
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = getCommandPool(threadIndex);
+	allocInfo.commandBufferCount = commandBuffers.size();
+
+	VK_CHECK_RESULT(vkAllocateCommandBuffers(device_, &allocInfo, commandBuffers.data()));
+}
+*/
+
+/*
 void Vulkan_Device::createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory) {
 	VK_CHECK_RESULT(vkCreateImage(device_, &imageInfo, nullptr, &image))
 
@@ -274,5 +290,6 @@ void Vulkan_Device::createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMe
 
 	VK_CHECK_RESULT(vkBindImageMemory(device_, image, imageMemory, 0))
 }
+*/
 
 } //namespace lv

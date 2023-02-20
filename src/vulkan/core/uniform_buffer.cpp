@@ -44,13 +44,13 @@ VkDescriptorSetLayoutBinding UniformBuffer::getBinding(uint8_t binding) {
 }
 */
 
-Vulkan_BufferInfo Vulkan_UniformBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset) {
+Vulkan_BufferInfo Vulkan_UniformBuffer::descriptorInfo(/*VkDeviceSize size, VkDeviceSize offset*/) {
 	Vulkan_BufferInfo info;
 	info.infos.resize(frameCount);
 	for (uint8_t i = 0; i < frameCount; i++) {
 		info.infos[i].buffer = buffers[i];// = VkDescriptorBufferInfo{buffers[i], offset, size};
-		info.infos[i].offset = offset;
-		info.infos[i].range = size;
+		info.infos[i].offset = 0;//offset;
+		info.infos[i].range = VK_WHOLE_SIZE;//size;
 	}
 	info.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 

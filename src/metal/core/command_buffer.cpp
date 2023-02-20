@@ -11,14 +11,24 @@ void Metal_CommandBuffer::init() {
     commandBuffers.resize(frameCount);
 }
 
-void Metal_CommandBuffer::bind() {
+void Metal_CommandBuffer::bind(LvCommandBufferUsage usage) {
     uint8_t index = std::min(g_metal_swapChain->crntFrame, uint8_t(frameCount - 1));
     commandBuffers[index] = g_metal_device->commandQueue->commandBuffer();
     g_metal_swapChain->activeCommandBuffer = this;
 }
 
-void Metal_CommandBuffer::submit() {
+void Metal_CommandBuffer::submit(Metal_Semaphore* waitSemaphore, Metal_Semaphore* signalSemaphore) {
     uint8_t index = std::min(g_metal_swapChain->crntFrame, uint8_t(frameCount - 1));
+
+    if (waitSemaphore != nullptr)
+        dispatch_semaphore_wait(waitSemaphore->semaphore, DISPATCH_TIME_FOREVER);
+    
+    if (signalSemaphore != nullptr) {
+        commandBuffers[index]->addCompletedHandler(^(MTL::CommandBuffer* cmd) {
+            dispatch_semaphore_signal(signalSemaphore->semaphore);
+        });
+    }
+
     commandBuffers[index]->commit();
     commandBuffers[index]->release();
 }

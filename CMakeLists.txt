@@ -37,9 +37,10 @@ endif ()
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 
 include_directories(
-    "/home/samuliak/Documents/lava_window/include"
+    "/Users/samuliak/Documents/lava_window/include"
     "external/vma/include"
     "external/stb/include"
+    "external/json/include"
     "include"
 )
 
@@ -48,6 +49,7 @@ file(GLOB src
     "src/vulkan/libraries/*.cpp"
     "src/vulkan/window/*.cpp"
     "src/filesystem/*.cpp"
+    "src/threading/*.cpp"
     "src/libraries/*.cpp"
 )
 
@@ -59,7 +61,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION 1)
 find_library(
     LVND_LIB
     NAMES lvnd liblvnd
-    HINTS "/home/samuliak/Documents/lava_window/lib"
+    HINTS "/Users/samuliak/Documents/lava_window/lib"
     NO_DEFAULT_PATH
 )
 

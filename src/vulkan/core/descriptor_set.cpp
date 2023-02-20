@@ -10,35 +10,10 @@ namespace lv {
 
 Vulkan_DescriptorPool* g_vulkan_descriptorPool = nullptr;
 
-// *************** Descriptor Set Layout *********************
-
-void Vulkan_DescriptorSetLayout::init() {
-	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
-	descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-	descriptorSetLayoutInfo.pBindings = bindings.data();
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(g_vulkan_device->device(), &descriptorSetLayoutInfo, nullptr, &descriptorSetLayout))
-}
-
-void Vulkan_DescriptorSetLayout::destroy() {
-	vkDestroyDescriptorSetLayout(g_vulkan_device->device(), descriptorSetLayout, nullptr);
-	//descriptorSetLayout = VK_NULL_HANDLE;
-}
-
-void Vulkan_DescriptorSetLayout::addBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags) {
-	//assert(bindings.count(binding) == 0 && "Binding already in use");
-	VkDescriptorSetLayoutBinding layoutBinding{};
-	layoutBinding.binding = binding;
-	layoutBinding.descriptorType = descriptorType;
-	layoutBinding.descriptorCount = 1;
-	layoutBinding.stageFlags = stageFlags;
-	bindings.push_back(layoutBinding);
-}
-
 // *************** Descriptor Pool *********************
 
 Vulkan_DescriptorPool::Vulkan_DescriptorPool(Vulkan_DescriptorPoolCreateInfo& createInfo) {
+	maxSets = createInfo.maxSets;
 	poolSizesBegin = createInfo.poolSizes;
 	poolSizes = poolSizesBegin;
 
@@ -54,12 +29,12 @@ Vulkan_DescriptorPool::Vulkan_DescriptorPool(Vulkan_DescriptorPoolCreateInfo& cr
 void Vulkan_DescriptorPool::init() {
 	VkDescriptorPoolCreateInfo descriptorPoolInfo{};
 	descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizesVec.size());
 	descriptorPoolInfo.pPoolSizes = poolSizesVec.data();
 	descriptorPoolInfo.maxSets = maxSets;
 	descriptorPoolInfo.flags = poolFlags;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(g_vulkan_device->device(), &descriptorPoolInfo, nullptr, &descriptorPool))
+	VK_CHECK_RESULT(vkCreateDescriptorPool(g_vulkan_device->device(), &descriptorPoolInfo, nullptr, &descriptorPool));
 }
 
 void Vulkan_DescriptorPool::destroy() {
@@ -75,7 +50,7 @@ void Vulkan_DescriptorPool::allocateDescriptorSet(const VkDescriptorSetLayout de
 
 	// Might want to create a "DescriptorPoolManager" class that handles this case, and builds
 	// a new pool whenever an old pool fills up. But this is beyond our current scope
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(g_vulkan_device->device(), &allocInfo, &descriptor))
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(g_vulkan_device->device(), &allocInfo, &descriptor));
 }
 
 /*
@@ -101,10 +76,11 @@ void DescriptorPool::addPoolSize(VkDescriptorType descriptorType, uint32_t count
 */
 
 void Vulkan_DescriptorPool::recreate() {
+	std::cout << "Recreating descriptor pool" << std::endl;
 	oldPools.push_back(descriptorPool);
 	//descriptorPool = VK_NULL_HANDLE;
-	init();
 	poolSizes = poolSizesBegin;
+	init();
 }
 
 // *************** Descriptor Writer *********************
@@ -201,16 +177,14 @@ void Vulkan_DescriptorSet::destroy() {
 
 void Vulkan_DescriptorSet::addBinding(Vulkan_BufferInfo bufferInfo, uint32_t binding) {
     //g_descriptorManager->descriptorPool.addPoolSize(descriptorType, SwapChain::MAX_FRAMES_IN_FLIGHT);
-	for (uint8_t i = 0; i < frameCount; i++)
-    	descriptorTypes.push_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    descriptorTypes.push_back(bufferInfo.descriptorType);
     bufferBindingIndices.push_back(binding);
     bufferInfos.push_back(bufferInfo);
 }
 
 void Vulkan_DescriptorSet::addBinding(Vulkan_ImageInfo imageInfo, uint32_t binding) {
     //g_descriptorManager->descriptorPool.addPoolSize(descriptorType, SwapChain::MAX_FRAMES_IN_FLIGHT);
-	for (uint8_t i = 0; i < frameCount; i++)
-    	descriptorTypes.push_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+    descriptorTypes.push_back(imageInfo.descriptorType);
     imageBindingIndices.push_back(binding);
     imageInfos.push_back(imageInfo);
 }
@@ -225,6 +199,7 @@ bool Vulkan_DescriptorSet::registerDescriptor(VkDescriptorType descriptorType) {
 		g_vulkan_descriptorPool->recreate();
 		count = g_vulkan_descriptorPool->poolSizes[descriptorType];
 		count -= 1;
+
 		return false;
 	}
 	count -= 1;
@@ -236,41 +211,15 @@ bool Vulkan_DescriptorSet::registerDescriptor(VkDescriptorType descriptorType) {
 void Vulkan_DescriptorSet::registerDescriptorSet() {
 	while (true) {
 		bool allocated = true;
-		for (auto& descriptorType : descriptorTypes) {
-			if (!registerDescriptor(descriptorType))
-				allocated = false;
+		for (uint8_t i = 0; i < frameCount; i++) {
+			for (auto& descriptorType : descriptorTypes) {
+				if (!registerDescriptor(descriptorType))
+					allocated = false;
+			}
 		}
 		if (allocated)
 			break;
 	}
-}
-
-// *************** Descriptor Layouts *********************
-
-void Vulkan_PipelineLayout::init() {
-	for (uint8_t i = 0; i < descriptorSetLayouts.size(); i++)
-		descriptorSetLayouts[i].init();
-
-	std::vector<VkDescriptorSetLayout> descLayouts;
-	for (uint8_t i = 0; i < descriptorSetLayouts.size(); i++) {
-		descLayouts.push_back(descriptorSetLayouts[i].descriptorSetLayout);
-	} 
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = descLayouts.size();
-	pipelineLayoutInfo.pSetLayouts = descLayouts.data();
-	pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
-	pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
-
-	VK_CHECK_RESULT(vkCreatePipelineLayout(g_vulkan_device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout))
-}
-
-void Vulkan_PipelineLayout::destroy() {
-	for (uint8_t i = 0; i < descriptorSetLayouts.size(); i++)
-		descriptorSetLayouts[i].destroy();
-	vkDestroyPipelineLayout(g_vulkan_device->device(), pipelineLayout, nullptr);
-	//std::cout << "PIPELINE LAYOUT DESTROYED" << std::endl;
 }
 
 // *************** Descriptor Manager *********************

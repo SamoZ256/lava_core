@@ -5,7 +5,17 @@
 
 namespace lv {
 
-Metal_ComputePipeline::Metal_ComputePipeline(Metal_ComputePipelineCreateInfo& createInfo) {
+void Metal_ComputePipeline::init(Metal_ComputePipelineCreateInfo& aCreateInfo) {
+    createInfo = aCreateInfo;
+
+    compile();
+}
+
+void Metal_ComputePipeline::destroy() {
+    computePipeline->release();
+}
+
+void Metal_ComputePipeline::compile() {
     MTL::ComputePipelineDescriptor* computePipelineDesc = MTL::ComputePipelineDescriptor::alloc()->init();
     computePipelineDesc->setThreadGroupSizeIsMultipleOfThreadExecutionWidth(true);
     computePipelineDesc->setComputeFunction(createInfo.computeShaderModule->function);
@@ -17,19 +27,19 @@ Metal_ComputePipeline::Metal_ComputePipeline(Metal_ComputePipelineCreateInfo& cr
     }
 
     computePipelineDesc->release();
-
-    commandBuffer.init();
 }
 
-void Metal_ComputePipeline::destroy() {
+void Metal_ComputePipeline::recompile() {
     computePipeline->release();
+    compile();
 }
 
 void Metal_ComputePipeline::bind() {
-    commandBuffer.bind();
-    encoder = commandBuffer.createComputeCommandEncoder();
+    encoder = g_metal_swapChain->activeCommandBuffer->createComputeCommandEncoder();
     encoder->setComputePipelineState(computePipeline);
+    g_metal_swapChain->activePipelineLayout = createInfo.pipelineLayout;
     g_metal_swapChain->activeComputeEncoder = encoder;
+    g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_COMPUTE_INDEX] = createInfo.computeShaderModule->shaderBundle;
 }
 
 void Metal_ComputePipeline::dispatch(uint32_t threadgroupsX, uint32_t threadgroupsY, uint32_t threadgroupsZ,
@@ -38,9 +48,6 @@ void Metal_ComputePipeline::dispatch(uint32_t threadgroupsX, uint32_t threadgrou
                                   MTL::Size::Make(threadsPerGroupX, threadsPerGroupY, threadsPerGroupZ));
 
     encoder->endEncoding();
-
-    commandBuffer.submit();
-    //encoder->release();
 }
 
 } //namespace lv

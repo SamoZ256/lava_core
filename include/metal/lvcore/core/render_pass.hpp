@@ -9,10 +9,13 @@ class Metal_Subpass {
 public:
     std::vector<Metal_SubpassAttachment> colorAttachments;
     Metal_SubpassAttachment depthAttachment;
+    std::vector<Metal_SubpassAttachment> inputAttachments;
 
     void addColorAttachment(Metal_SubpassAttachment attachment) { colorAttachments.push_back(attachment); }
 
     void setDepthAttachment(Metal_SubpassAttachment attachment) { depthAttachment = attachment; }
+
+    void addInputAttachment(Metal_SubpassAttachment attachment) { inputAttachments.push_back(attachment); }
 };
 
 class Metal_RenderPass {
@@ -21,6 +24,7 @@ public:
 
     std::vector<Metal_RenderPassAttachment> colorAttachments;
     Metal_RenderPassAttachment depthAttachment;
+    std::vector<Metal_RenderPassAttachment> inputAttachments;
 
     std::vector<Metal_RenderPassAttachment*> sortedAttachments;
 
@@ -33,6 +37,8 @@ public:
     void addColorAttachment(Metal_RenderPassAttachment attachment) { colorAttachments.push_back(attachment); }
 
     void setDepthAttachment(Metal_RenderPassAttachment attachment) { depthAttachment = attachment; }
+
+    void addInputAttachment(Metal_RenderPassAttachment attachment) { inputAttachments.push_back(attachment); }
 };
 
 } //namespace lv

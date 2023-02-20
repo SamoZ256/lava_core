@@ -12,10 +12,12 @@ namespace lv {
 class Metal_Texture {
 public:
     Metal_Image image;
+    Metal_ImageView imageView;
     Metal_Sampler sampler;
 
     std::string filename = "";
 
+    MTL::PixelFormat format = MTL::PixelFormatRGBA8Unorm;
     MTL::SamplerMinMagFilter filter = MTL::SamplerMinMagFilterLinear;
 
     bool generateMipmaps = false;
@@ -23,7 +25,7 @@ public:
     uint16_t width, height;
     void* textureData;
 
-    void init();
+    void init(uint8_t threadIndex);
 
     void destroy();
 

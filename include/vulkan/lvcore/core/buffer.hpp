@@ -26,17 +26,11 @@ public:
 
 	VkBufferUsageFlags usage = 0;
 	
-	void init(void* data, uint32_t aSize);
+	void init(uint8_t threadIndex, void* data, uint32_t aSize);
 
 	void destroy();
 
-	static VmaAllocation createRenderBuffer(
-		VkDeviceSize size,
-		VkBufferUsageFlags usage,
-		VkBuffer &buffer,
-		void* bufferData,
-		VmaAllocationCreateFlags allocationFlags
-	);
+	static VmaAllocation createRenderBuffer(uint8_t threadIndex, VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer &buffer, void* bufferData, VmaAllocationCreateFlags allocationFlags);
 
 	void bindVertexBuffer();
 

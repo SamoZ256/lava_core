@@ -75,6 +75,8 @@ void Vulkan_SwapChain::init(LvndWindow* window) {
 	//createDepthResources();
 	framebuffer.frameCount = imageCount();
 	framebuffer.init(&renderPass);
+	commandBuffer.frameCount = imageCount();
+	commandBuffer.init();
 
 	//window.width = width();
 	//window.height = height();
@@ -98,45 +100,21 @@ void Vulkan_SwapChain::resize(LvndWindow* window) {
 }
 
 void Vulkan_SwapChain::destroyToResize() {
-	/*
-	for (auto imageView : swapChainImageViews) {
-		vkDestroyImageView(g_metal_device->device(), imageView, nullptr);
-	}
-	swapChainImageViews.clear();
-	*/
-	//for (auto& imageView : imageViews)
 	imageView.destroy();
 
 	oldSwapChain = swapChain;
 
-	//image.images.clear();
-
-	/*
-	for (int i = 0; i < depthImages.size(); i++) {
-		vkDestroyImageView(g_metal_device->device(), depthImageViews[i], nullptr);
-		vkDestroyImage(g_metal_device->device(), depthImages[i], nullptr);
-		vkFreeMemory(g_metal_device->device(), depthImageMemorys[i], nullptr);
-	}
-	*/
-
-	/*
-	for (auto framebuffer : swapChainFramebuffers) {
-		vkDestroyFramebuffer(g_metal_device->device(), framebuffer, nullptr);
-	}
-	*/
 	framebuffer.destroy();
-
-	//vkDestroyRenderPass(g_metal_device->device(), renderPass, nullptr);
+	commandBuffer.destroy();
 	renderPass.destroy();
 }
 
 void Vulkan_SwapChain::destroy() {
 	destroyToResize();
 
-	// cleanup synchronization objects
+	renderFinishedSemaphore.destroy();
+	imageAvailableSemaphore.destroy();
 	for (size_t i = 0; i < maxFramesInFlight; i++) {
-		vkDestroySemaphore(g_vulkan_device->device(), renderFinishedSemaphores[i], nullptr);
-		vkDestroySemaphore(g_vulkan_device->device(), imageAvailableSemaphores[i], nullptr);
 		vkDestroyFence(g_vulkan_device->device(), inFlightFences[i], nullptr);
 	}
 	
@@ -144,21 +122,16 @@ void Vulkan_SwapChain::destroy() {
 }
 
 void Vulkan_SwapChain::renderAndPresent() {
-	VK_CHECK_RESULT(submitCommandBuffers(&framebuffer.commandBuffer.commandBuffers[imageIndex]));
+	VK_CHECK_RESULT(submitCommandBuffers(&commandBuffer.commandBuffers[imageIndex]));
 }
 
 void Vulkan_SwapChain::acquireNextImage(/*uint32_t *imageIndex*/) {
-	vkWaitForFences(
-		g_vulkan_device->device(),
-		1,
-		&inFlightFences[crntFrame],
-		VK_TRUE,
-		std::numeric_limits<uint64_t>::max());
+	vkWaitForFences(g_vulkan_device->device(), 1, &inFlightFences[crntFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 
-	VK_CHECK_RESULT(vkAcquireNextImageKHR(g_vulkan_device->device(), swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[crntFrame], VK_NULL_HANDLE, &imageIndex));
+	VK_CHECK_RESULT(vkAcquireNextImageKHR(g_vulkan_device->device(), swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore.semaphores[crntFrame], VK_NULL_HANDLE, &imageIndex));
 }
 
-VkResult Vulkan_SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers/*, uint32_t *imageIndex*/) {
+VkResult Vulkan_SwapChain::submitCommandBuffers(const VkCommandBuffer* buffers/*, uint32_t *imageIndex*/) {
 	if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
 		vkWaitForFences(g_vulkan_device->device(), 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
 	}
@@ -167,7 +140,7 @@ VkResult Vulkan_SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers/*
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[crntFrame]};
+	VkSemaphore waitSemaphores[] = {imageAvailableSemaphore.semaphores[crntFrame]};
 	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
@@ -176,9 +149,9 @@ VkResult Vulkan_SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers/*
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = buffers;
 
-	VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[crntFrame]};
+	//VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[crntFrame]};
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = signalSemaphores;
+	submitInfo.pSignalSemaphores = &renderFinishedSemaphore.semaphores[crntFrame];
 
 	vkResetFences(g_vulkan_device->device(), 1, &inFlightFences[crntFrame]);
 	if (vkQueueSubmit(g_vulkan_device->graphicsQueue(), 1, &submitInfo, inFlightFences[crntFrame]) !=
@@ -190,7 +163,7 @@ VkResult Vulkan_SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers/*
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = signalSemaphores;
+	presentInfo.pWaitSemaphores = &renderFinishedSemaphore.semaphores[crntFrame];
 
 	VkSwapchainKHR swapChains[] = {swapChain};
 	presentInfo.swapchainCount = 1;
@@ -386,21 +359,16 @@ void SwapChain::createDepthResources() {
 */
 
 void Vulkan_SwapChain::createSyncObjects() {
-	imageAvailableSemaphores.resize(maxFramesInFlight);
-	renderFinishedSemaphores.resize(maxFramesInFlight);
 	inFlightFences.resize(maxFramesInFlight);
 	imagesInFlight.resize(imageCount(), VK_NULL_HANDLE);
-
-	VkSemaphoreCreateInfo semaphoreInfo = {};
-	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
 	VkFenceCreateInfo fenceInfo = {};
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
+	imageAvailableSemaphore.init();
+	renderFinishedSemaphore.init();
 	for (size_t i = 0; i < maxFramesInFlight; i++) {
-		VK_CHECK_RESULT(vkCreateSemaphore(g_vulkan_device->device(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]));
-		VK_CHECK_RESULT(vkCreateSemaphore(g_vulkan_device->device(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]));
 		VK_CHECK_RESULT(vkCreateFence(g_vulkan_device->device(), &fenceInfo, nullptr, &inFlightFences[i]));
 	}
 }
@@ -433,7 +401,6 @@ VkPresentModeKHR Vulkan_SwapChain::chooseSwapPresentMode(const std::vector<VkPre
 	//   }
 	// }
 
-	std::cout << "V-Sync: " << (vsyncEnabled ? "true" : "false") << std::endl;
 	return vsyncEnabled ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
 }
 
@@ -458,18 +425,6 @@ VkFormat Vulkan_SwapChain::findDepthFormat() {
       {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
       VK_IMAGE_TILING_OPTIMAL,
       VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-}
-
-void Vulkan_SwapChain::createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) {
-	commandBuffers.resize(maxFramesInFlight);
-
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = g_vulkan_device->getCommandPool();
-	allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
-
-	VK_CHECK_RESULT(vkAllocateCommandBuffers(g_vulkan_device->device(), &allocInfo, commandBuffers.data()));
 }
 
 } //namespace lv

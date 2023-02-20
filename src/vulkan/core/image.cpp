@@ -28,10 +28,8 @@ void Vulkan_Image::destroy() {
         vmaDestroyImage(g_vulkan_allocator->allocator, images[i], allocations[i]);
 }
 
-void Vulkan_Image::transitionLayout(VkImageLayout srcLayout, VkImageLayout dstLayout) {
-    for (uint8_t i = 0; i < images.size(); i++) {
-        Vulkan_ImageHelper::transitionImageLayout(images[i], format, srcLayout, dstLayout, aspectMask, layerCount, mipCount);
-    }
+void Vulkan_Image::transitionLayout(uint8_t threadIndex, uint8_t imageIndex, VkImageLayout srcLayout, VkImageLayout dstLayout) {
+    Vulkan_ImageHelper::transitionImageLayout(threadIndex, images[imageIndex], format, srcLayout, dstLayout, aspectMask, layerCount, mipCount);
 }
 
 void Vulkan_Image::resize(uint16_t width, uint16_t height) {
@@ -39,8 +37,8 @@ void Vulkan_Image::resize(uint16_t width, uint16_t height) {
     init(width, height);
 }
 
-void Vulkan_Image::generateMipmaps() {
-    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands();
+void Vulkan_Image::generateMipmaps(uint8_t threadIndex) {
+    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands(threadIndex);
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -107,7 +105,112 @@ void Vulkan_Image::generateMipmaps() {
         }
     }
 
-    g_vulkan_device->endSingleTimeCommands(commandBuffer);
+    g_vulkan_device->endSingleTimeCommands(threadIndex, commandBuffer);
+}
+
+void Vulkan_Image::copyToFromImage(uint8_t threadIndex, Vulkan_Image& source) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+void Vulkan_Image::blitToFromImage(uint8_t threadIndex, Vulkan_Image& source) {
+    //VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands(threadIndex);
+    VkCommandBuffer commandBuffer = g_vulkan_swapChain->getActiveCommandBuffer();
+
+    uint8_t srcIndex = std::min(g_vulkan_swapChain->crntFrame, uint8_t(source.frameCount - 1));
+    uint8_t dstIndex = std::min(g_vulkan_swapChain->crntFrame, uint8_t(frameCount - 1));
+
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.subresourceRange.aspectMask = aspectMask;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    barrier.image = source.images[srcIndex];
+
+    vkCmdPipelineBarrier(commandBuffer,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier);
+
+    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.image = images[dstIndex];
+
+    vkCmdPipelineBarrier(commandBuffer,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier);
+
+    VkImageBlit blit{};
+    blit.srcOffsets[0] = {0, 0, 0};
+    blit.srcOffsets[1] = {source.width, source.height, 1};
+    blit.srcSubresource.aspectMask = source.aspectMask;
+    blit.srcSubresource.mipLevel = 0;
+    blit.srcSubresource.baseArrayLayer = 0;
+    blit.srcSubresource.layerCount = 1;
+
+    blit.dstOffsets[0] = {0, 0, 0};
+    blit.dstOffsets[1] = {width, height, 1 };
+    blit.dstSubresource.aspectMask = aspectMask;
+    blit.dstSubresource.mipLevel = 0;
+    blit.dstSubresource.baseArrayLayer = 0;
+    blit.dstSubresource.layerCount = 1;
+
+    vkCmdBlitImage(commandBuffer,
+        source.images[srcIndex], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        images[dstIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1, &blit,
+        VK_FILTER_NEAREST);
+    
+    /*
+    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    barrier.image = images[dstIndex];
+
+    vkCmdPipelineBarrier(commandBuffer,
+        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier);
+    */
+
+    //g_vulkan_device->endSingleTimeCommands(threadIndex, commandBuffer);
+}
+
+void Vulkan_Image::fillWithData(uint8_t threadIndex, void* data, uint16_t bytesPerPixel) {
+    VkDeviceSize imageSize = width * height * bytesPerPixel;
+
+    VkBuffer stagingBuffer;
+
+    //VmaAllocationInfo allocInfo;
+    VmaAllocation stagingAllocation = Vulkan_BufferHelper::createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingBuffer, nullptr, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    void* mappedData;
+    vmaMapMemory(g_vulkan_allocator->allocator, stagingAllocation, &mappedData);
+    memcpy(mappedData, data, imageSize);
+    vmaUnmapMemory(g_vulkan_allocator->allocator, stagingAllocation);
+
+    for (uint8_t i = 0; i < frameCount; i++) {
+        transitionLayout(threadIndex, i, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        //ImageBuffer::transitionImageLayout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        Vulkan_BufferHelper::copyBufferToImage(threadIndex, stagingBuffer, images[i], width, height);
+        //ImageBuffer::transitionImageLayout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    }
+
+    //Clean up
+    vmaDestroyBuffer(g_vulkan_allocator->allocator, stagingBuffer, stagingAllocation);
 }
 
 } //namespace lv

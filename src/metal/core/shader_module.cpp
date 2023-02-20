@@ -1,10 +1,14 @@
 #include "metal/lvcore/core/shader_module.hpp"
 
 #include "metal/lvcore/core/device.hpp"
+#include "metal/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
-Metal_ShaderModule::Metal_ShaderModule(Metal_ShaderModuleCreateInfo& createInfo) {
+void Metal_ShaderModule::init(Metal_ShaderModuleCreateInfo& aCreateInfo) {
+    createInfo = aCreateInfo;
+    shaderBundle = createInfo.shaderBundle;
+
     dispatch_data_t sourceData = convertStringToDispatchData(createInfo.source);
 
     NS::Error* pError = nullptr;
@@ -14,26 +18,40 @@ Metal_ShaderModule::Metal_ShaderModule(Metal_ShaderModuleCreateInfo& createInfo)
         throw std::runtime_error(pError->localizedDescription()->utf8String());
     }
 
+    compile();
+}
+
+void Metal_ShaderModule::destroy() {
+    library->release();
+    function->release();
+}
+
+void Metal_ShaderModule::compile() {
+    NS::Error* pError = nullptr;
     if (createInfo.specializationConstants.size() == 0) {
         function = library->newFunction(NS::String::string(createInfo.functionName, NS::UTF8StringEncoding));
     } else {
-        MTL::FunctionConstantValues* constantValues = MTL::FunctionConstantValues::alloc()->init();
-        for (auto& mapEntry : createInfo.specializationConstants) {
-            constantValues->setConstantValue(mapEntry.data, mapEntry.dataType, mapEntry.constantID);
-        }
-
         MTL::FunctionDescriptor* functionDesc = MTL::FunctionDescriptor::alloc()->init();
         functionDesc->setName(NS::String::string(createInfo.functionName, NS::UTF8StringEncoding));
-        functionDesc->setConstantValues(constantValues);
+
+        if (createInfo.specializationConstants.size() > 0) {
+            MTL::FunctionConstantValues* constantValues = MTL::FunctionConstantValues::alloc()->init();
+            //char* constantsData = (char*)createInfo.constantsData;
+            for (auto& mapEntry : createInfo.specializationConstants) {
+                constantValues->setConstantValue(/*((void**)createInfo.constantsData)[mapEntry.offset]*/(char*)createInfo.constantsData + mapEntry.offset, mapEntry.dataType, mapEntry.constantID);
+            }
+
+            functionDesc->setConstantValues(constantValues);
+        }
 
         //function = library->newFunction(NS::String::string(createInfo.functionName, NS::StringEncoding::UTF8StringEncoding));
         function = library->newFunction(functionDesc, &pError);
     }
 }
 
-void Metal_ShaderModule::destroy() {
-    library->release();
+void Metal_ShaderModule::recompile() {
     function->release();
+    compile();
 }
 
 } //namespace lv

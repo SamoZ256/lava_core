@@ -11,10 +11,13 @@ class Vulkan_Subpass {
 public:
     std::vector<Vulkan_SubpassAttachment> colorAttachments;
     Vulkan_SubpassAttachment depthAttachment;
+    std::vector<Vulkan_SubpassAttachment> inputAttachments;
 
     void addColorAttachment(Vulkan_SubpassAttachment attachment) { colorAttachments.push_back(attachment); }
 
     void setDepthAttachment(Vulkan_SubpassAttachment attachment) { depthAttachment = attachment; }
+
+    void addInputAttachment(Vulkan_SubpassAttachment attachment) { inputAttachments.push_back(attachment); }
 };
 
 class Vulkan_RenderPass {
@@ -26,6 +29,7 @@ public:
 
     std::vector<Vulkan_RenderPassAttachment> colorAttachments;
     Vulkan_RenderPassAttachment depthAttachment;
+    std::vector<Vulkan_RenderPassAttachment> inputAttachments;
 
     void init();
 
@@ -36,6 +40,8 @@ public:
     void addColorAttachment(Vulkan_RenderPassAttachment attachment) { colorAttachments.push_back(attachment); }
 
     void setDepthAttachment(Vulkan_RenderPassAttachment attachment) { depthAttachment = attachment; }
+
+    void addInputAttachment(Vulkan_RenderPassAttachment attachment) { inputAttachments.push_back(attachment); }
 };
 
 } //namespace lv

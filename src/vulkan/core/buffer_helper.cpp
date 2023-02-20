@@ -24,8 +24,8 @@ VmaAllocation Vulkan_BufferHelper::createBuffer(VkDeviceSize size, VkBufferUsage
     return allocation;
 }
 
-void Vulkan_BufferHelper::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands();
+void Vulkan_BufferHelper::copyBuffer(uint8_t threadIndex, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands(threadIndex);
 
     VkBufferCopy copyRegion{};
     copyRegion.srcOffset = 0;  // Optional
@@ -33,11 +33,11 @@ void Vulkan_BufferHelper::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkD
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    g_vulkan_device->endSingleTimeCommands(commandBuffer);
+    g_vulkan_device->endSingleTimeCommands(threadIndex, commandBuffer);
 }
 
-void Vulkan_BufferHelper::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount, uint8_t arrayLayer, VkImageAspectFlagBits aspectMask) {
-    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands();
+void Vulkan_BufferHelper::copyBufferToImage(uint8_t threadIndex, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount, uint8_t arrayLayer, VkImageAspectFlagBits aspectMask) {
+    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands(threadIndex);
 
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
@@ -59,11 +59,11 @@ void Vulkan_BufferHelper::copyBufferToImage(VkBuffer buffer, VkImage image, uint
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1,
         &region);
-    g_vulkan_device->endSingleTimeCommands(commandBuffer);
+    g_vulkan_device->endSingleTimeCommands(threadIndex, commandBuffer);
 }
 
-void Vulkan_BufferHelper::copyImage(VkImage srcImage, VkImage dstImage, uint32_t width, uint32_t height, uint32_t srcLayerCount, uint8_t srcArrayLayer, uint32_t dstLayerCount, uint8_t dstArrayLayer , VkImageAspectFlagBits aspectMask) {
-    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands();
+void Vulkan_BufferHelper::copyImage(uint8_t threadIndex, VkImage srcImage, VkImage dstImage, uint32_t width, uint32_t height, uint32_t srcLayerCount, uint8_t srcArrayLayer, uint32_t dstLayerCount, uint8_t dstArrayLayer , VkImageAspectFlagBits aspectMask) {
+    VkCommandBuffer commandBuffer = g_vulkan_device->beginSingleTimeCommands(threadIndex);
 
     VkImageCopy region{};
     region.srcOffset = {0, 0, 0};
@@ -89,7 +89,7 @@ void Vulkan_BufferHelper::copyImage(VkImage srcImage, VkImage dstImage, uint32_t
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1,
         &region);
-    g_vulkan_device->endSingleTimeCommands(commandBuffer);
+    g_vulkan_device->endSingleTimeCommands(threadIndex, commandBuffer);
 }
 
 } //namespace lv

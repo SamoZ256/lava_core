@@ -13,6 +13,8 @@
 
 #include "instance.hpp"
 
+#include "lvcore/threading/thread_pool.hpp"
+
 namespace lv {
 
 struct SwapChainSupportDetails {
@@ -31,10 +33,13 @@ struct QueueFamilyIndices {
 
 struct Vulkan_DeviceCreateInfo {
     LvndWindow* window;
+    ThreadPool* threadPool;
 };
 
 class Vulkan_Device {
 public:
+    uint8_t maxThreadCount;
+
     Vulkan_Device(Vulkan_DeviceCreateInfo& createInfo);
 
     void destroy();
@@ -49,7 +54,7 @@ public:
 
     void waitIdle() { vkDeviceWaitIdle(device_); }
 
-    VkCommandPool getCommandPool() { return commandPool; }
+    VkCommandPool getCommandPool(uint8_t threadIndex) { return commandPools[threadIndex]; }
     VkDevice device() { return device_; }
     VkSurfaceKHR surface() { return surface_; }
     VkQueue graphicsQueue() { return graphicsQueue_; }
@@ -61,16 +66,18 @@ public:
     VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
     // Buffer Helper Functions
-    VkCommandBuffer beginSingleTimeCommands();
-    void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+    VkCommandBuffer beginSingleTimeCommands(uint8_t threadIndex);
+    void endSingleTimeCommands(uint8_t threadIndex, VkCommandBuffer commandBuffer);
 
-    void createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
+	//void createCommandBuffers(uint8_t threadIndex, std::vector<VkCommandBuffer>& commandBuffers);
+
+    //void createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
 
     VkPhysicalDeviceProperties properties;
 
     void pickPhysicalDevice();
     void createLogicalDevice();
-    void createCommandPool();
+    void createCommandPool(uint8_t index);
 
     // helper functions
     bool isDeviceSuitable(VkPhysicalDevice device);
@@ -79,7 +86,7 @@ public:
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkCommandPool commandPool;
+    std::vector<VkCommandPool> commandPools;
 
     VkDevice device_;
     VkSurfaceKHR surface_;

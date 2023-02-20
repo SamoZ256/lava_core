@@ -42,11 +42,17 @@ public:
 
     void destroy();
 
-    void transitionLayout(VkImageLayout srcLayout, VkImageLayout dstLayout);
+    void transitionLayout(uint8_t threadIndex, uint8_t imageIndex, VkImageLayout srcLayout, VkImageLayout dstLayout);
 
     void resize(uint16_t width, uint16_t height);
 
-    void generateMipmaps();
+    void generateMipmaps(uint8_t threadIndex);
+
+    void copyToFromImage(uint8_t threadIndex, Vulkan_Image& source);
+
+    void blitToFromImage(uint8_t threadIndex, Vulkan_Image& source);
+
+    void fillWithData(uint8_t threadIndex, void* data, uint16_t bytesPerPixel); //TODO: query this information at runtime
 };
 
 } //namespace lv

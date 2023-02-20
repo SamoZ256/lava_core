@@ -13,11 +13,11 @@ public:
     uint8_t frameCount = 0;
 
     std::vector<MTL::RenderPassDescriptor*> renderPasses;
-    Metal_CommandBuffer commandBuffer;
     MTL::RenderCommandEncoder* encoder = nullptr;
 
     std::vector<Metal_FramebufferAttachment> colorAttachments;
     Metal_FramebufferAttachment depthAttachment;
+    std::vector<Metal_FramebufferAttachment> inputAttachments;
 
     void init(Metal_RenderPass* renderPass);
 
@@ -27,11 +27,11 @@ public:
 
     void setDepthAttachment(Metal_FramebufferAttachment attachment) { depthAttachment = attachment; }
 
+    void addInputAttachment(Metal_FramebufferAttachment attachment) { inputAttachments.push_back(attachment); }
+
     void bind();
 
     void unbind();
-
-    void render();
 };
 
 } //namespace lv

@@ -3,6 +3,7 @@
 #include <string>
 
 #include "metal/lvcore/core/device.hpp"
+#include "metal/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
@@ -36,6 +37,17 @@ void Metal_Sampler::bind(uint16_t index, LvShaderStage shaderStage) {
         default:
             throw std::invalid_argument("Sampler::bind: invalid shader stage '" + std::to_string(shaderStage) + "'");
     }
+}
+
+Metal_ImageInfo Metal_Sampler::descriptorInfo(Metal_ImageView& imageView, LvImageLayout imageLayout) {
+    Metal_ImageInfo info;
+    info.imageViews.resize(imageView.frameCount);
+    for (uint8_t i = 0; i < imageView.frameCount; i++)
+        info.imageViews[i] = imageView.imageViews[i];
+    info.sampler = sampler;
+    info.descriptorType = LV_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+    return info;
 }
 
 } //namespace lv
