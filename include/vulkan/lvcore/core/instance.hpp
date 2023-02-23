@@ -8,28 +8,28 @@
 #include <set>
 #include <unordered_set>
 
-#define LVND_BACKEND_VULKAN
-#include "lvnd/lvnd.h"
+#include <vulkan/vulkan.h>
+
+#define LV_MAKE_VERSION VK_API_MAKE_VERSION
+
+#define LV_VULKAN_VERSION_1_0 VK_API_VERSION_1_0
+#define LV_VULKAN_VERSION_1_1 VK_API_VERSION_1_1
+#define LV_VULKAN_VERSION_1_2 VK_API_VERSION_1_2
+#define LV_VULKAN_VERSION_1_3 VK_API_VERSION_1_3
 
 namespace lv {
 
 struct Vulkan_InstanceCreateInfo {
     const char* applicationName;
-    uint32_t applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    uint32_t vulkanVersion = VK_API_VERSION_1_1;
-    bool enableValidationLayers = false;
+    uint32_t applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
+    uint32_t vulkanVersion = VK_API_VERSION_1_0;
+    bool validationEnable = false;
 };
 
 class Vulkan_Instance {
 public:
-/*
-#ifdef NDEBUG
-    const bool enableValidationLayers = false;
-#else
-   	const bool enableValidationLayers = true;
-#endif
-*/
-    bool enableValidationLayers;
+    uint32_t vulkanVersion;
+    bool validationEnable;
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
@@ -48,9 +48,6 @@ public:
 };
 
 extern Vulkan_Instance* g_vulkan_instance;
-
-//Implementation
-//class Inst { public: static Instance* g_instance; };
 
 } //namespace lv
 

@@ -17,18 +17,26 @@ Vulkan_Device::Vulkan_Device(Vulkan_DeviceCreateInfo& createInfo) {
 	commandPools.resize(maxThreadCount);
 	for (uint8_t i = 0; i < maxThreadCount; i++)
 		createCommandPool(i);
+	
+	VmaAllocatorCreateInfo allocatorCreateInfo = {};
+    allocatorCreateInfo.vulkanApiVersion = g_vulkan_instance->vulkanVersion;
+    allocatorCreateInfo.physicalDevice = physicalDevice;
+    allocatorCreateInfo.device = device_;
+    allocatorCreateInfo.instance = g_vulkan_instance->instance;
+    
+    VK_CHECK_RESULT(vmaCreateAllocator(&allocatorCreateInfo, &allocator));
 
 	g_vulkan_device = this;
 }
 
 void Vulkan_Device::destroy() {
-    std::cout << "Destroying device" << std::endl;
+	vmaDestroyAllocator(allocator);
+
 	for (uint8_t i = 0; i < maxThreadCount; i++)
 		vkDestroyCommandPool(device_, commandPools[i], nullptr);
 	vkDestroyDevice(device_, nullptr);
 
 	vkDestroySurfaceKHR(g_vulkan_instance->instance, surface_, nullptr);
-    std::cout << "Destroyed device" << std::endl;
 }
 
 void Vulkan_Device::pickPhysicalDevice() {
@@ -89,7 +97,7 @@ void Vulkan_Device::createLogicalDevice() {
 
 	// might not really be necessary anymore because device specific validation layers
 	// have been deprecated
-	if (g_vulkan_instance->enableValidationLayers) {
+	if (g_vulkan_instance->validationEnable) {
 		createInfo.enabledLayerCount = static_cast<uint32_t>(g_vulkan_instance->validationLayers.size());
 		createInfo.ppEnabledLayerNames = g_vulkan_instance->validationLayers.data();
 	} else {

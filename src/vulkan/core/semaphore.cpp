@@ -6,7 +6,7 @@
 namespace lv {
 
 void Vulkan_Semaphore::init() {
-    if (frameCount == -1) frameCount = g_vulkan_swapChain->maxFramesInFlight;
+    if (frameCount == 0) frameCount = g_vulkan_swapChain->maxFramesInFlight;
 
     VkSemaphoreCreateInfo semaphoreInfo = {};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

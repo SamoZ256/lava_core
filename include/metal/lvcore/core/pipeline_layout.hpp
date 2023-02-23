@@ -9,11 +9,11 @@ namespace lv {
 
 struct Metal_DescriptorSetLayoutBinding {
     LvDescriptorType descriptorType;
-    LvShaderStage shaderStage;
+    LvShaderStageFlags shaderStage;
 };
 
 struct Metal_PushConstantRange {
-    LvShaderStage stageFlags;
+    LvShaderStageFlags stageFlags;
     uint32_t offset;
     uint32_t size;
 };
@@ -31,7 +31,7 @@ public:
     //DescriptorSetLayout(const DescriptorSetLayout&) = delete;
     //Vulkan_DescriptorSetLayout& operator=(const Vulkan_DescriptorSetLayout&) = delete;
 
-    void addBinding(uint32_t binding, LvDescriptorType descriptorType, LvShaderStage shaderStage) {
+    void addBinding(uint32_t binding, LvDescriptorType descriptorType, LvShaderStageFlags shaderStage) {
         bindings.push_back({descriptorType, shaderStage});
     }
 };

@@ -31,4 +31,19 @@ typedef Metal_Device Device;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/device.hpp"
+
+#define g_device g_opengl_device
+
+namespace lv {
+
+typedef OpenGL_DeviceCreateInfo DeviceCreateInfo;
+typedef OpenGL_Device Device;
+
+} //namespace lv
+
+#endif
+
 #endif

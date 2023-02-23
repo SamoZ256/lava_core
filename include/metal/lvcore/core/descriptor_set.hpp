@@ -5,7 +5,7 @@
 
 #include "pipeline_layout.hpp"
 #include "sampler.hpp"
-#include "uniform_buffer.hpp"
+#include "buffer.hpp"
 
 namespace lv {
 
@@ -13,8 +13,7 @@ class Metal_DescriptorSet {
 public:
     uint8_t frameCount = 0;
 
-    //uint16_t shaderType;
-    Metal_PipelineLayout& pipelineLayout;
+    Metal_PipelineLayout* pipelineLayout;
     uint8_t layoutIndex;
 
     std::vector<std::vector<MTL::Buffer*> > buffers;
@@ -23,8 +22,6 @@ public:
     std::vector<uint32_t> textureBindingIndices;
     std::vector<MTL::SamplerState*> samplers;
     std::vector<uint32_t> samplerBindingIndices;
-
-    Metal_DescriptorSet(Metal_PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
 
     void init() {}
 

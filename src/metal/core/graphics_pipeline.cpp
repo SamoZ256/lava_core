@@ -1,6 +1,7 @@
 #include "metal/lvcore/core/graphics_pipeline.hpp"
 
 #include <string>
+#include <iostream>
 
 #include "metal/lvcore/core/common.hpp"
 
@@ -11,6 +12,7 @@ namespace lv {
 
 void Metal_GraphicsPipeline::init(Metal_GraphicsPipelineCreateInfo& aCreateInfo) {
     createInfo = aCreateInfo;
+    pipelineLayout = createInfo.pipelineLayout;
 
     compile();
 
@@ -84,13 +86,18 @@ void Metal_GraphicsPipeline::bind() {
     g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_FRAGMENT_INDEX] = createInfo.fragmentShaderModule->shaderBundle;
 }
 
-void Metal_GraphicsPipeline::uploadPushConstants(void* data, uint16_t index, size_t size, LvShaderStage shaderStage) {
-    if (shaderStage == LV_SHADER_STAGE_VERTEX_BIT)
-        g_metal_swapChain->activeRenderEncoder->setVertexBytes(data, roundToMultipleOf16(size), index);
-    else if (shaderStage == LV_SHADER_STAGE_FRAGMENT_BIT)
-        g_metal_swapChain->activeRenderEncoder->setFragmentBytes(data, roundToMultipleOf16(size), index);
-    else
-        throw std::runtime_error("GraphicsPipeline::uploadPushConstants: invalid shader stage '" + std::to_string(shaderStage) + "'");
+void Metal_GraphicsPipeline::uploadPushConstants(void* data, uint16_t index/*, size_t size, LvShaderStageFlags shaderStage*/) {
+    size_t size = pipelineLayout->pushConstantRanges[index].size;
+    LvShaderStageFlags shaderStage = pipelineLayout->pushConstantRanges[index].stageFlags;
+
+    if (shaderStage & LV_SHADER_STAGE_VERTEX_BIT) {
+        uint32_t bufferIndex = g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_VERTEX_INDEX]->pushConstantBinding;
+        g_metal_swapChain->activeRenderEncoder->setVertexBytes(data, roundToMultipleOf16(size), bufferIndex);
+    }
+    if (shaderStage & LV_SHADER_STAGE_FRAGMENT_BIT) {
+        uint32_t bufferIndex = g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_FRAGMENT_INDEX]->pushConstantBinding;
+        g_metal_swapChain->activeRenderEncoder->setFragmentBytes(data, roundToMultipleOf16(size), bufferIndex);
+    }
 }
 
 } //namespace lv

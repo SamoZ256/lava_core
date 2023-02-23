@@ -2,7 +2,6 @@
 
 #include "vulkan/lvcore/core/device.hpp"
 #include "vulkan/lvcore/core/swap_chain.hpp"
-#include "vulkan/lvcore/core/allocator.hpp"
 
 namespace lv {
 
@@ -19,7 +18,7 @@ VmaAllocation Vulkan_BufferHelper::createBuffer(VkDeviceSize size, VkBufferUsage
     allocCreateInfo.flags = allocationFlags;
     
     VmaAllocation allocation;
-    VK_CHECK_RESULT(vmaCreateBuffer(g_vulkan_allocator->allocator, &bufferInfo, &allocCreateInfo, &buffer, &allocation, allocInfo))
+    VK_CHECK_RESULT(vmaCreateBuffer(g_vulkan_device->allocator, &bufferInfo, &allocCreateInfo, &buffer, &allocation, allocInfo))
 
     return allocation;
 }

@@ -11,7 +11,7 @@ void Metal_CommandBuffer::init() {
     commandBuffers.resize(frameCount);
 }
 
-void Metal_CommandBuffer::bind(LvCommandBufferUsage usage) {
+void Metal_CommandBuffer::bind(LvCommandBufferUsageFlags usage) {
     uint8_t index = std::min(g_metal_swapChain->crntFrame, uint8_t(frameCount - 1));
     commandBuffers[index] = g_metal_device->commandQueue->commandBuffer();
     g_metal_swapChain->activeCommandBuffer = this;

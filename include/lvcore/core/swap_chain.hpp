@@ -31,4 +31,19 @@ typedef Metal_SwapChain SwapChain;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/swap_chain.hpp"
+
+#define g_swapChain g_opengl_swapChain
+
+namespace lv {
+
+typedef OpenGL_SwapChainCreateInfo SwapChainCreateInfo;
+typedef OpenGL_SwapChain SwapChain;
+
+} //namespace lv
+
+#endif
+
 #endif

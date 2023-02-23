@@ -2,7 +2,7 @@
 
 namespace lv {
 
-Vulkan_VertexDescriptor::Vulkan_VertexDescriptor(uint16_t aBufferBinding, size_t size) : bufferBinding(aBufferBinding) {
+Vulkan_VertexDescriptor::Vulkan_VertexDescriptor(size_t size) {
     vertexDesc.bindingDescriptions.resize(1);
     vertexDesc.bindingDescriptions[0].binding = 0;
     vertexDesc.bindingDescriptions[0].stride = size;
@@ -11,7 +11,7 @@ Vulkan_VertexDescriptor::Vulkan_VertexDescriptor(uint16_t aBufferBinding, size_t
 
 void Vulkan_VertexDescriptor::addBinding(uint16_t location, VkFormat format, uint32_t offset) {
     VkVertexInputAttributeDescription desc;
-    desc.binding = bufferBinding;
+    desc.binding = 0;
     desc.location = location;
     desc.format = format;
     desc.offset = offset;

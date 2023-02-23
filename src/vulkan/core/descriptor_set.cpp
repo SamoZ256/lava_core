@@ -147,7 +147,7 @@ void Vulkan_DescriptorSet::init() {
 	
 	descriptorSets.resize(frameCount);
 	for (uint8_t i = 0; i < descriptorSets.size(); i++) {
-		Vulkan_DescriptorWriter writer(pipelineLayout, layoutIndex);
+		Vulkan_DescriptorWriter writer(*pipelineLayout, layoutIndex);
 		for (uint8_t buff = 0; buff < bufferInfos.size(); buff++) {
 			uint8_t frameIndex = i < bufferInfos[buff].infos.size() ? i : 0;
 			writer.writeBuffer(bufferBindingIndices[buff], &bufferInfos[buff].infos[frameIndex]);
@@ -190,7 +190,7 @@ void Vulkan_DescriptorSet::addBinding(Vulkan_ImageInfo imageInfo, uint32_t bindi
 }
 
 void Vulkan_DescriptorSet::bind() {
-  	vkCmdBindDescriptorSets(g_vulkan_swapChain->getActiveCommandBuffer(), g_vulkan_swapChain->pipelineBindPoint, pipelineLayout.pipelineLayout, layoutIndex, 1, &descriptorSets[g_vulkan_swapChain->imageIndex], 0, nullptr);
+  	vkCmdBindDescriptorSets(g_vulkan_swapChain->getActiveCommandBuffer(), g_vulkan_swapChain->pipelineBindPoint, pipelineLayout->pipelineLayout, layoutIndex, 1, &descriptorSets[g_vulkan_swapChain->imageIndex], 0, nullptr);
 }
 
 bool Vulkan_DescriptorSet::registerDescriptor(VkDescriptorType descriptorType) {
@@ -221,60 +221,5 @@ void Vulkan_DescriptorSet::registerDescriptorSet() {
 			break;
 	}
 }
-
-// *************** Descriptor Manager *********************
-
-/*
-DescriptorManager::DescriptorManager(DescriptorManagerCreateInfo& createInfo) {
-	//Pool sizes
-	poolSizesBegin = createInfo.poolSizes;
-	poolSizes = poolSizesBegin;
-	for (const auto& [key, value] : poolSizes) {
-		descriptorPool.addPoolSize(key, value * MAX_FRAMES_IN_FLIGHT);
-	}
-	descriptorPool.init();
-	//pipelineLayouts.resize(createInfo.pipelineLayoutCount);
-
-	g_descriptorManager = this;
-}
-*/
-
-/*
-void DescriptorManager::init(uint16_t pipelineLayoutCount) {
-  descriptorPool.init();
-  shaderLayouts.resize(pipelineLayoutCount);
-}
-*/
-
-/*
-void DescriptorManager::destroy() {
-	std::cout << "Destroying decriptor manager" << std::endl;
-	for (uint8_t layout = 0; layout < pipelineLayouts.size(); layout++) {
-		pipelineLayouts[layout].destroy();
-	}
-
-	descriptorPool.destroy();
-	for (uint8_t i = 0; i < shadowGraphicsPipelineLayouts.layouts.size(); i++) {
-		shadowGraphicsPipelineLayouts.layouts[i].destroy();
-	}
-	std::cout << "Destroyed decriptor manager" << std::endl;
-}
-
-void DescriptorManager::resetPool() {
-  	std::cout << "Resetting descriptor pool" << std::endl;
-	descriptorPool.recreate();
-	poolSizes = poolSizesBegin;
-}
-*/
-
-/*
-void DescriptorManager::createDescriptorLayouts() {
-	for (uint8_t layout = 0; layout < pipelineLayouts.size(); layout++) {
-		pipelineLayouts[layout].init();
-	}
-	//for (uint8_t layout = 0; layout < shaderLayouts.size(); layout++)
-	//  shaderLayouts[layout].createPipelineLayout();
-}
-*/
 
 } //namespace lv

@@ -8,6 +8,8 @@
 
 #include "common.hpp"
 
+#include "enums.hpp"
+
 #include "buffer_helper.hpp"
 #include "image_helper.hpp"
 
@@ -19,30 +21,29 @@ public:
 
     std::vector<VkImage> images;
     std::vector<VmaAllocation> allocations;
-    //std::vector<VkDeviceMemory> imageMemories;
 
     uint16_t width, height;
 
-    VkFormat format;
-    VkImageUsageFlags usage = 0;// = /*VK_IMAGE_USAGE_TRANSFER_DST_BIT | */VK_IMAGE_USAGE_SAMPLED_BIT;
-    VkImageAspectFlags aspectMask = 0;
-    VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D;
-    VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    LvFormat format;
+    LvImageUsageFlags usage = 0;
+    LvImageAspectFlags aspectMask = LV_IMAGE_ASPECT_COLOR_BIT;
+    LvImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D;
+    LvMemoryType memoryType = LV_MEMORY_TYPE_PRIVATE;
+    LvMemoryAllocationCreateFlags memoryAllocationFlags = 0;
     uint16_t layerCount = 1;
     uint16_t mipCount = 1;
-    //VkImageLayout dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    VkImageCreateFlags flags = 0;
-    //VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    //VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	VmaAllocationCreateFlags allocationFlags = 0;
 
     bool resized = false;
 
     void init(uint16_t aWidth, uint16_t aHeight);
 
+    void initFromFile(const char* filename);
+
     void destroy();
 
-    void transitionLayout(uint8_t threadIndex, uint8_t imageIndex, VkImageLayout srcLayout, VkImageLayout dstLayout);
+    void copyDataTo(uint8_t threadIndex, void* data);
+
+    void transitionLayout(uint8_t threadIndex, uint8_t imageIndex, LvImageLayout srcLayout, LvImageLayout dstLayout);
 
     void resize(uint16_t width, uint16_t height);
 
@@ -51,8 +52,6 @@ public:
     void copyToFromImage(uint8_t threadIndex, Vulkan_Image& source);
 
     void blitToFromImage(uint8_t threadIndex, Vulkan_Image& source);
-
-    void fillWithData(uint8_t threadIndex, void* data, uint16_t bytesPerPixel); //TODO: query this information at runtime
 };
 
 } //namespace lv

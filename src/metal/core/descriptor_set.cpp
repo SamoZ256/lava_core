@@ -8,7 +8,7 @@ g_metal_swapChain->activeShaderBundles[shaderStageIndex]->bindingsName[layoutInd
 namespace lv {
 
 /*
-uint8_t shaderStageBitToIndex(LvShaderStage shaderStage) {
+uint8_t shaderStageBitToIndex(LvShaderStageFlags shaderStage) {
     if (shaderStage & LV_SHADER_STAGE_VERTEX_BIT)
         return LV_SHADER_STAGE_VERTEX_INDEX;
     else if (shaderStage & LV_SHADER_STAGE_FRAGMENT_BIT)
@@ -35,7 +35,7 @@ void Metal_DescriptorSet::addBinding(Metal_ImageInfo imageInfo, uint32_t binding
 void Metal_DescriptorSet::bind() {
     for (uint32_t i = 0; i < buffers.size(); i++) {
         MTL::Buffer* buffer = buffers[i][std::min(g_metal_swapChain->crntFrame, uint8_t(buffers[i].size() - 1))];
-        LvShaderStage shaderStage = g_metal_swapChain->activePipelineLayout->descriptorSetLayouts[layoutIndex].bindings[bufferBindingIndices[i]].shaderStage;
+        LvShaderStageFlags shaderStage = pipelineLayout->descriptorSetLayouts[layoutIndex].bindings[bufferBindingIndices[i]].shaderStage;
 
         if (shaderStage & LV_SHADER_STAGE_VERTEX_BIT) {
             uint32_t binding = GET_BINDING_BY_SHADER_STAGE_INDEX(LV_SHADER_STAGE_VERTEX_INDEX, bufferBindings, bufferBindingIndices);
@@ -53,7 +53,7 @@ void Metal_DescriptorSet::bind() {
 
     for (uint32_t i = 0; i < textures.size(); i++) {
         MTL::Texture* texture = textures[i][std::min(g_metal_swapChain->crntFrame, uint8_t(textures[i].size() - 1))];
-        LvShaderStage shaderStage = g_metal_swapChain->activePipelineLayout->descriptorSetLayouts[layoutIndex].bindings[textureBindingIndices[i]].shaderStage;
+        LvShaderStageFlags shaderStage = pipelineLayout->descriptorSetLayouts[layoutIndex].bindings[textureBindingIndices[i]].shaderStage;
 
         if (shaderStage & LV_SHADER_STAGE_VERTEX_BIT) {
             uint32_t binding = GET_BINDING_BY_SHADER_STAGE_INDEX(LV_SHADER_STAGE_VERTEX_INDEX, textureBindings, textureBindingIndices);
@@ -70,7 +70,7 @@ void Metal_DescriptorSet::bind() {
     }
 
     for (uint32_t i = 0; i < samplers.size(); i++) {
-        LvShaderStage shaderStage = g_metal_swapChain->activePipelineLayout->descriptorSetLayouts[layoutIndex].bindings[samplerBindingIndices[i]].shaderStage;
+        LvShaderStageFlags shaderStage = pipelineLayout->descriptorSetLayouts[layoutIndex].bindings[samplerBindingIndices[i]].shaderStage;
 
         if (shaderStage & LV_SHADER_STAGE_VERTEX_BIT) {
             uint32_t binding = GET_BINDING_BY_SHADER_STAGE_INDEX(LV_SHADER_STAGE_VERTEX_INDEX, samplerBindings, samplerBindingIndices);

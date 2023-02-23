@@ -1,25 +1,48 @@
 #include "metal/lvcore/core/buffer.hpp"
 
 #include "metal/lvcore/core/device.hpp"
+#include "metal/lvcore/core/swap_chain.hpp"
 
 namespace lv {
 
-void Metal_Buffer::init(uint8_t threadIndex, void* data, size_t aSize) {
+void Metal_Buffer::init(size_t aSize) {
+    if (frameCount == 0) frameCount = g_metal_swapChain->maxFramesInFlight;
+
     size = aSize;
 
-    MTL::Buffer* stagingBuffer = g_metal_device->device->newBuffer(size, MTL::ResourceStorageModeShared);
-    memcpy(stagingBuffer->contents(), data, size);
-    //stagingBuffer->didModifyRange(NS::Range::Make(0, stagingBuffer->length()));
-
-    buffer = g_metal_device->device->newBuffer(size, MTL::ResourceStorageModePrivate);
-
-    copyBufferToBuffer(stagingBuffer, buffer, size);
-
-    stagingBuffer->release();
+    buffers.resize(frameCount);
+    for (uint8_t i = 0; i < frameCount; i++)
+        buffers[i] = g_metal_device->device->newBuffer(size, MTL::ResourceStorageModePrivate);
 }
 
 void Metal_Buffer::destroy() {
-    buffer->release();
+    for (uint8_t i = 0; i < frameCount; i++)
+        buffers[i]->release();
+}
+
+void Metal_Buffer::copyDataTo(uint8_t threadIndex, void* data) {
+    uint8_t index = std::min(g_metal_swapChain->crntFrame, uint8_t(frameCount - 1));
+    if (memoryType == LV_MEMORY_TYPE_PRIVATE) {
+        MTL::Buffer* stagingBuffer = g_metal_device->device->newBuffer(size, MTL::ResourceStorageModeShared);
+        memcpy(stagingBuffer->contents(), data, size);
+
+        copyBufferToBuffer(stagingBuffer, buffers[index], size);
+
+        stagingBuffer->release();
+    } else if (memoryType == LV_MEMORY_TYPE_SHARED) {
+        memcpy(buffers[index]->contents(), data, size); 
+    }
+}
+
+Metal_BufferInfo Metal_Buffer::descriptorInfo() {
+	Metal_BufferInfo info;
+	info.buffers.resize(frameCount);
+	for (uint8_t i = 0; i < frameCount; i++) {
+		info.buffers[i] = buffers[i];
+	}
+	info.descriptorType = LV_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+	return info;
 }
 
 void Metal_Buffer::copyBufferToBuffer(MTL::Buffer* srcBuffer, MTL::Buffer* dstBuffer, uint32_t size) {

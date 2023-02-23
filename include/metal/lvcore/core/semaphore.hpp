@@ -7,7 +7,7 @@ namespace lv {
 
 class Metal_Semaphore {
 public:
-    int8_t frameCount = -1;
+    uint8_t frameCount = 0;
 
     dispatch_semaphore_t semaphore;
 

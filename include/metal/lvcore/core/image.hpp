@@ -17,11 +17,12 @@ public:
 
     uint16_t width, height;
 
-    MTL::PixelFormat format;
-    MTL::TextureUsage usage = 0;
-    LvImageAspect aspectMask = 0;
-    MTL::TextureType viewType = MTL::TextureType2D;
-    MTL::StorageMode memoryProperties = MTL::StorageModePrivate;
+    LvFormat format;
+    LvImageUsageFlags usage = 0;
+    LvImageAspectFlags aspectMask = LV_IMAGE_ASPECT_COLOR_BIT;
+    LvImageViewType viewType = LV_IMAGE_VIEW_TYPE_2D;
+    LvMemoryType memoryType = LV_MEMORY_TYPE_PRIVATE;
+    LvMemoryAllocationCreateFlags memoryAllocationFlags = 0;
     uint16_t layerCount = 1;
     uint16_t mipCount = 1;
 
@@ -30,17 +31,21 @@ public:
 
     void init(uint16_t aWidth, uint16_t aHeight);
 
+    void initFromFile(const char* filename);
+
     void destroy() { for (uint8_t i = 0; i < frameCount; i++) images[i]->release(); }
 
-    void bind(uint16_t index, LvShaderStage shaderStage = LV_SHADER_STAGE_FRAGMENT_BIT);
+    void copyDataTo(uint8_t threadIndex, void* data);
 
-    void generateMipmaps();
+    void transitionLayout(uint8_t threadIndex, uint8_t imageIndex, LvImageLayout srcLayout, LvImageLayout dstLayout) {}
+
+    void _bind(uint16_t index, LvShaderStageFlags shaderStage = LV_SHADER_STAGE_FRAGMENT_BIT);
+
+    void generateMipmaps(uint8_t threadIndex);
 
     void copyToFromImage(uint8_t threadIndex, Metal_Image& source);
 
     void blitToFromImage(uint8_t threadIndex, Metal_Image& source);
-
-    void fillWithData(uint8_t threadIndex, void* data, uint16_t bytesPerPixel); //TODO: query this information at runtime
 };
 
 } //namespace lv

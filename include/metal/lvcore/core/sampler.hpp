@@ -10,10 +10,11 @@ namespace lv {
 class Metal_Sampler {
 public:
     MTL::SamplerState* sampler;
-    MTL::SamplerMinMagFilter filter = MTL::SamplerMinMagFilterNearest;
-    MTL::SamplerAddressMode addressMode = MTL::SamplerAddressModeClampToEdge;
-    unsigned int compareEnable = false;
-    MTL::CompareFunction compareOp = MTL::CompareFunctionLess;
+
+    LvFilter filter = LV_FILTER_NEAREST;
+    LvSamplerAddressMode addressMode = LV_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    LvBool compareEnable = LV_FALSE;
+    LvCompareOp compareOp = LV_COMPARE_OP_LESS;
     float minLod = 0.0f;
     float maxLod = 0.0f;
 
@@ -21,7 +22,7 @@ public:
 
     void destroy() { sampler->release(); }
 
-    void bind(uint16_t index, LvShaderStage shaderStage = LV_SHADER_STAGE_FRAGMENT_BIT);
+    void _bind(uint16_t index, LvShaderStageFlags shaderStage = LV_SHADER_STAGE_FRAGMENT_BIT);
 
     Metal_ImageInfo descriptorInfo(Metal_ImageView& imageView, LvImageLayout imageLayout = LV_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 };

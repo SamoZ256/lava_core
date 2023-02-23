@@ -20,7 +20,7 @@ struct Metal_SpecializationMapEntry {
 
 struct Metal_ShaderModuleCreateInfo {
     Metal_ShaderBundle* shaderBundle;
-    LvShaderStage shaderStage;
+    LvShaderStageFlags shaderStage;
     std::string source;
     const char* functionName = "main0";
     std::vector<Metal_SpecializationMapEntry> specializationConstants;

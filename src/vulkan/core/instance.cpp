@@ -1,5 +1,8 @@
 #include "vulkan/lvcore/core/instance.hpp"
 
+#define LVND_BACKEND_VULKAN
+#include "lvnd/lvnd.h"
+
 #include "vulkan/lvcore/core/common.hpp"
 
 namespace lv {
@@ -31,8 +34,9 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 }
 
 Vulkan_Instance::Vulkan_Instance(Vulkan_InstanceCreateInfo& createInfo) {
-	enableValidationLayers = createInfo.enableValidationLayers;
-    if (enableValidationLayers && !checkValidationLayerSupport()) {
+	vulkanVersion = createInfo.vulkanVersion;
+	validationEnable = createInfo.validationEnable;
+    if (validationEnable && !checkValidationLayerSupport()) {
 		throw std::runtime_error("Validation layers requested, but not available");
 	}
 
@@ -41,8 +45,8 @@ Vulkan_Instance::Vulkan_Instance(Vulkan_InstanceCreateInfo& createInfo) {
 	appInfo.pApplicationName = createInfo.applicationName;
 	appInfo.applicationVersion = createInfo.applicationVersion;
 	appInfo.pEngineName = "Lava Engine";
-	appInfo.engineVersion = VK_MAKE_VERSION(1, 1, 0);
-	appInfo.apiVersion = createInfo.vulkanVersion;
+	appInfo.engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
+	appInfo.apiVersion = vulkanVersion;
 
 	VkInstanceCreateInfo instanceCreateInfo = {};
 	instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -56,7 +60,7 @@ Vulkan_Instance::Vulkan_Instance(Vulkan_InstanceCreateInfo& createInfo) {
 	instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
 	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-	if (enableValidationLayers) {
+	if (validationEnable) {
 		instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 		instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
 
@@ -76,20 +80,18 @@ Vulkan_Instance::Vulkan_Instance(Vulkan_InstanceCreateInfo& createInfo) {
 }
 
 void Vulkan_Instance::destroy() {
-    std::cout << "Destroying instance" << std::endl;
-	if (enableValidationLayers) {
+	if (validationEnable)
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-	}
 
 	vkDestroyInstance(instance, nullptr);
-    std::cout << "Destroyed instance" << std::endl;
 }
 
 void Vulkan_Instance::setupDebugMessenger() {
-	if (!enableValidationLayers) return;
-	VkDebugUtilsMessengerCreateInfoEXT createInfo;
-	populateDebugMessengerCreateInfo(createInfo);
-	VK_CHECK_RESULT(CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger))
+	if (validationEnable) {
+		VkDebugUtilsMessengerCreateInfoEXT createInfo;
+		populateDebugMessengerCreateInfo(createInfo);
+		VK_CHECK_RESULT(CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger));
+	}
 }
 
 bool Vulkan_Instance::checkValidationLayerSupport() {
@@ -109,9 +111,8 @@ bool Vulkan_Instance::checkValidationLayerSupport() {
 			}
 		}
 
-		if (!layerFound) {
+		if (!layerFound)
 			return false;
-		}
 	}
 
 	return true;
@@ -123,14 +124,14 @@ void Vulkan_Instance::hasGflwRequiredInstanceExtensions() {
 	std::vector<VkExtensionProperties> extensions(extensionCount);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
-	std::cout << "available extensions:" << std::endl;
+	std::cout << "Available extensions:" << std::endl;
 	std::unordered_set<std::string> available;
 	for (const auto &extension : extensions) {
 		std::cout << "\t" << extension.extensionName << std::endl;
 		available.insert(extension.extensionName);
 	}
 
-	std::cout << "required extensions:" << std::endl;
+	std::cout << "Required extensions:" << std::endl;
 	auto requiredExtensions = getRequiredExtensions();
 	for (const auto &required : requiredExtensions) {
 		std::cout << "\t" << required << std::endl;
@@ -153,11 +154,11 @@ void Vulkan_Instance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCrea
 }
 
 std::vector<const char *> Vulkan_Instance::getRequiredExtensions() {
-	uint16_t glfwExtensionCount = 0;
-	const char** glfwExtensions;
-	glfwExtensions = lvndVulkanGetRequiredInstanceExtensions(&glfwExtensionCount);
+	uint16_t lvndExtensionCount = 0;
+	const char** lvndExtensions;
+	lvndExtensions = lvndVulkanGetRequiredInstanceExtensions(&lvndExtensionCount);
 
-	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+	std::vector<const char*> extensions(lvndExtensions, lvndExtensions + lvndExtensionCount);
 	/*
 	for (uint8_t i = 0; i < extensions.size(); i++) {
 		std::cout << "GLFWextension[" << (int)i << "]: " << extensions[i] << std::endl;
@@ -167,7 +168,7 @@ std::vector<const char *> Vulkan_Instance::getRequiredExtensions() {
 	extensions.push_back("VK_KHR_portability_enumeration");
 #endif
 
-	if (enableValidationLayers) {
+	if (validationEnable) {
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	}
 

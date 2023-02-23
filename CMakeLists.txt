@@ -38,16 +38,17 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 
 include_directories(
     "/Users/samuliak/Documents/lava_window/include"
-    "external/vma/include"
+    "external/vma"
     "external/stb/include"
     "external/json/include"
+    "external/glad/include"
     "include"
 )
 
 file(GLOB src
     "src/vulkan/core/*.cpp"
     "src/vulkan/libraries/*.cpp"
-    "src/vulkan/window/*.cpp"
+    "src/opengl/core/*.cpp"
     "src/filesystem/*.cpp"
     "src/threading/*.cpp"
     "src/libraries/*.cpp"
@@ -55,6 +56,7 @@ file(GLOB src
 
 add_library(${PROJECT_NAME} SHARED
     ${src}
+    external/glad/src/glad.c
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION 1)
 
@@ -85,7 +87,6 @@ if (APPLE)
     file(GLOB metalSrc
         "src/metal/core/*.cpp"
         "src/metal/libraries/*.cpp"
-        "src/metal/window/*.cpp"
     )
 
     target_sources(${PROJECT_NAME} PRIVATE

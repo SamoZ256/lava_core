@@ -31,4 +31,18 @@ typedef Metal_DescriptorPool DescriptorPool;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/descriptor_set.hpp"
+
+namespace lv {
+
+typedef OpenGL_DescriptorSet DescriptorSet;
+typedef OpenGL_DescriptorPoolCreateInfo DescriptorPoolCreateInfo;
+typedef OpenGL_DescriptorPool DescriptorPool;
+
+} //namespace lv
+
+#endif
+
 #endif

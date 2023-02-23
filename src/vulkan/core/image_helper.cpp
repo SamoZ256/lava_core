@@ -3,7 +3,6 @@
 #include "vulkan/lvcore/core/common.hpp"
 
 #include "vulkan/lvcore/core/buffer_helper.hpp"
-#include "vulkan/lvcore/core/allocator.hpp"
 #include "vulkan/lvcore/core/device.hpp"
 
 namespace lv {
@@ -31,7 +30,7 @@ VmaAllocation Vulkan_ImageHelper::createImage(uint16_t width, uint16_t height, V
     allocCreateInfo.flags = allocationFlags;
     
     VmaAllocation allocation;
-    VK_CHECK_RESULT(vmaCreateImage(g_vulkan_allocator->allocator, &imageInfo, &allocCreateInfo, &image, &allocation, allocInfo))
+    VK_CHECK_RESULT(vmaCreateImage(g_vulkan_device->allocator, &imageInfo, &allocCreateInfo, &image, &allocation, allocInfo))
 
     return allocation;
 }

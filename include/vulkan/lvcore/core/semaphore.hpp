@@ -9,7 +9,7 @@ namespace lv {
 
 class Vulkan_Semaphore {
 public:
-    int8_t frameCount = -1;
+    uint8_t frameCount = 0;
 
     std::vector<VkSemaphore> semaphores;
 

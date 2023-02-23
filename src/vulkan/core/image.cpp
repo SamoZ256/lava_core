@@ -1,6 +1,7 @@
 #include "vulkan/lvcore/core/image.hpp"
 
-#include "vulkan/lvcore/core/allocator.hpp"
+#include <stb/stb_image.h>
+
 #include "vulkan/lvcore/core/device.hpp"
 #include "vulkan/lvcore/core/swap_chain.hpp"
 
@@ -13,19 +14,60 @@ void Vulkan_Image::init(uint16_t aWidth, uint16_t aHeight) {
     height = aHeight;
 
     if (usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT || usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        allocationFlags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+        memoryAllocationFlags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+    VkImageCreateFlags flags = 0;
+    if (viewType == VK_IMAGE_VIEW_TYPE_CUBE || viewType == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY)
+        flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+    
     images.resize(frameCount);
     allocations.resize(frameCount);
     for (uint8_t i = 0; i < frameCount; i++) {
         //Creating image
-        allocations[i] = Vulkan_ImageHelper::createImage((uint16_t)width, (uint16_t)height, format, VK_IMAGE_TILING_OPTIMAL, usage, images[i], nullptr, memoryProperties, layerCount, mipCount, allocationFlags, flags);
+        allocations[i] = Vulkan_ImageHelper::createImage((uint16_t)width, (uint16_t)height, format, VK_IMAGE_TILING_OPTIMAL, usage, images[i], nullptr, memoryType, layerCount, mipCount, memoryAllocationFlags, flags);
         //ImageBuffer::transitionImageLayout(images[i], format, VK_IMAGE_LAYOUT_UNDEFINED, dstLayout, aspectMask);
     }
 }
 
+void Vulkan_Image::initFromFile(const char* filename) {
+    int aWidth, aHeight, nbChannels;
+    void* data = (void*)stbi_load(filename, &aWidth, &aHeight, &nbChannels, STBI_rgb_alpha);
+    width = aWidth;
+    height = aHeight;
+
+    if (!data) {
+        throw std::runtime_error(("Failed to load image '" + std::string(filename) + "'").c_str());
+    }
+
+    init(width, height);
+    copyDataTo(0, data);
+
+    stbi_image_free(data);
+}
+
 void Vulkan_Image::destroy() {
     for (uint8_t i = 0; i < frameCount; i++)
-        vmaDestroyImage(g_vulkan_allocator->allocator, images[i], allocations[i]);
+        vmaDestroyImage(g_vulkan_device->allocator, images[i], allocations[i]);
+}
+
+void Vulkan_Image::copyDataTo(uint8_t threadIndex, void* data) {
+    VkDeviceSize imageSize = width * height * 4; //TODO: remove this hardcoding
+
+    VkBuffer stagingBuffer;
+
+    VmaAllocation stagingAllocation = Vulkan_BufferHelper::createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingBuffer, nullptr, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    void* mappedData;
+    vmaMapMemory(g_vulkan_device->allocator, stagingAllocation, &mappedData);
+    memcpy(mappedData, data, imageSize);
+    vmaUnmapMemory(g_vulkan_device->allocator, stagingAllocation);
+
+    for (uint8_t i = 0; i < frameCount; i++) {
+        transitionLayout(threadIndex, i, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        Vulkan_BufferHelper::copyBufferToImage(threadIndex, stagingBuffer, images[i], width, height);
+    }
+
+    //Clean up
+    vmaDestroyBuffer(g_vulkan_device->allocator, stagingBuffer, stagingAllocation);
 }
 
 void Vulkan_Image::transitionLayout(uint8_t threadIndex, uint8_t imageIndex, VkImageLayout srcLayout, VkImageLayout dstLayout) {
@@ -187,30 +229,6 @@ void Vulkan_Image::blitToFromImage(uint8_t threadIndex, Vulkan_Image& source) {
     */
 
     //g_vulkan_device->endSingleTimeCommands(threadIndex, commandBuffer);
-}
-
-void Vulkan_Image::fillWithData(uint8_t threadIndex, void* data, uint16_t bytesPerPixel) {
-    VkDeviceSize imageSize = width * height * bytesPerPixel;
-
-    VkBuffer stagingBuffer;
-
-    //VmaAllocationInfo allocInfo;
-    VmaAllocation stagingAllocation = Vulkan_BufferHelper::createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingBuffer, nullptr, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-    void* mappedData;
-    vmaMapMemory(g_vulkan_allocator->allocator, stagingAllocation, &mappedData);
-    memcpy(mappedData, data, imageSize);
-    vmaUnmapMemory(g_vulkan_allocator->allocator, stagingAllocation);
-
-    for (uint8_t i = 0; i < frameCount; i++) {
-        transitionLayout(threadIndex, i, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        //ImageBuffer::transitionImageLayout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        Vulkan_BufferHelper::copyBufferToImage(threadIndex, stagingBuffer, images[i], width, height);
-        //ImageBuffer::transitionImageLayout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    }
-
-    //Clean up
-    vmaDestroyBuffer(g_vulkan_allocator->allocator, stagingBuffer, stagingAllocation);
 }
 
 } //namespace lv

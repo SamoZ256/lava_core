@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <stb/stb_image.h>
+
 #include "metal/lvcore/core/device.hpp"
 #include "metal/lvcore/core/swap_chain.hpp"
 #include "metal/lvcore/core/buffer.hpp"
@@ -24,7 +26,7 @@ void Metal_Image::init(uint16_t aWidth, uint16_t aHeight) {
     textureDesc->setHeight(height);
     textureDesc->setPixelFormat(format);
     textureDesc->setTextureType(viewType);
-    textureDesc->setStorageMode(memoryProperties);
+    textureDesc->setStorageMode(memoryType);
     textureDesc->setUsage(usage);
     textureDesc->setArrayLength(NS::UInteger(layerCount / ((viewType == MTL::TextureTypeCube || viewType == MTL::TextureTypeCubeArray) ? 6 : 1)));
     textureDesc->setMipmapLevelCount(mipCount);
@@ -36,7 +38,34 @@ void Metal_Image::init(uint16_t aWidth, uint16_t aHeight) {
     textureDesc->release();
 }
 
-void Metal_Image::bind(uint16_t index, LvShaderStage shaderStage) {
+void Metal_Image::initFromFile(const char* filename) {
+    int aWidth, aHeight, nbChannels;
+    void* data = (void*)stbi_load(filename, &aWidth, &aHeight, &nbChannels, STBI_rgb_alpha);
+    width = aWidth;
+    height = aHeight;
+
+    if (!data) {
+        throw std::runtime_error(("Failed to load image '" + std::string(filename) + "'").c_str());
+    }
+
+    init(width, height);
+    copyDataTo(0, data);
+
+    stbi_image_free(data);
+}
+
+void Metal_Image::copyDataTo(uint8_t threadIndex, void* data) {
+    size_t size = width * height * 4; //TODO: remove this hardcoding
+    MTL::Buffer* stagingBuffer = g_metal_device->device->newBuffer(size, MTL::ResourceStorageModeShared);
+    memcpy(stagingBuffer->contents(), data, size);
+
+    for (uint8_t i = 0; i < frameCount; i++)
+        Metal_Buffer::copyBufferToImage(stagingBuffer, images[i], width, height);
+
+    stagingBuffer->release();
+}
+
+void Metal_Image::_bind(uint16_t index, LvShaderStageFlags shaderStage) {
     switch (shaderStage) {
         case LV_SHADER_STAGE_FRAGMENT_BIT:
             g_metal_swapChain->activeRenderEncoder->setFragmentTexture(images[std::min(g_metal_swapChain->crntFrame, uint8_t(images.size() - 1))], index);
@@ -49,7 +78,7 @@ void Metal_Image::bind(uint16_t index, LvShaderStage shaderStage) {
     }
 }
 
-void Metal_Image::generateMipmaps() {
+void Metal_Image::generateMipmaps(uint8_t threadIndex) {
     MTL::CommandBuffer* commandBuffer = g_metal_device->commandQueue->commandBuffer();
     MTL::BlitCommandEncoder* blitCommandEncoder = commandBuffer->blitCommandEncoder();
 
@@ -85,22 +114,11 @@ void Metal_Image::blitToFromImage(uint8_t threadIndex, Metal_Image& source) {
 
     blitComputePipeline.bind();
 
-    source.bind(0, LV_SHADER_STAGE_COMPUTE_BIT);
-    bind(1, LV_SHADER_STAGE_COMPUTE_BIT);
+    source._bind(0, LV_SHADER_STAGE_COMPUTE_BIT);
+    _bind(1, LV_SHADER_STAGE_COMPUTE_BIT);
 
     blitComputePipeline.dispatch(64, 64, 1,
                                 (width + 64 - 1) / 64, (height + 64 - 1) / 64, 1);
-}
-
-void Metal_Image::fillWithData(uint8_t threadIndex, void* data, uint16_t bytesPerPixel) {
-    size_t size = width * height * bytesPerPixel;
-    MTL::Buffer* stagingBuffer = g_metal_device->device->newBuffer(size, MTL::ResourceStorageModeShared);
-    memcpy(stagingBuffer->contents(), data, size);
-
-    for (uint8_t i = 0; i < frameCount; i++)
-        Metal_Buffer::copyBufferToImage(stagingBuffer, images[i], width, height);
-
-    stagingBuffer->release();
 }
 
 } //namespace lv

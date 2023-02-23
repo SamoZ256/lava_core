@@ -7,7 +7,7 @@
 namespace lv {
 
 void Metal_ShaderBundle::init(const char* filename) {
-    std::cout << filename << std::endl;
+    //std::cout << filename << std::endl;
     std::string source = readFile(filename);
     nlohmann::json JSON = nlohmann::json::parse(source);
 
@@ -39,14 +39,14 @@ void Metal_ShaderBundle::init(const char* filename) {
             auto& jsonBinding = jsonDescriptorSet["bindings"][binding.key()];
             std::string bindingNumberStr = binding.key();
             uint32_t bindingNumber = stoi(bindingNumberStr);
-            std::cout << "Binding number: " << bindingNumber << std::endl;
+            //std::cout << "Binding number: " << bindingNumber << std::endl;
 
             std::string descriptorType = jsonBinding["descriptorType"];
             if (descriptorType == "uniformBuffer") {
-                std::cout << "Uniform buffer" << std::endl;
+                //std::cout << "Uniform buffer" << std::endl;
                 bufferBindings[setNumber][bindingNumber] = jsonBinding["bufferBinding"];
             } else if (descriptorType == "combinedImageSampler") {
-                std::cout << "Combined image sampler" << std::endl;
+                //std::cout << "Combined image sampler" << std::endl;
                 textureBindings[setNumber][bindingNumber] = jsonBinding["textureBinding"];
                 samplerBindings[setNumber][bindingNumber] = jsonBinding["samplerBinding"];
             }

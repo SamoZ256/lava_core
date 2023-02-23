@@ -23,7 +23,7 @@ public:
 
     void destroy() {}
 
-    void bind(LvCommandBufferUsage usage = 0);
+    void bind(LvCommandBufferUsageFlags usage = 0);
 
     void unbind() {}
 

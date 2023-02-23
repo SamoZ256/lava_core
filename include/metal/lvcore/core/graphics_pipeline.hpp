@@ -33,6 +33,8 @@ public:
     MTL::DepthStencilState* depthStencilState;
     MTL::CullMode cullMode;
 
+    Metal_PipelineLayout* pipelineLayout;
+
     Metal_GraphicsPipelineCreateInfo createInfo;
 
     void init(Metal_GraphicsPipelineCreateInfo& aCreateInfo);
@@ -45,7 +47,7 @@ public:
 
     void bind();
 
-    void uploadPushConstants(void* data, uint16_t index, size_t size, LvShaderStage shaderStage);
+    void uploadPushConstants(void* data, uint16_t index/*, size_t size, LvShaderStageFlags shaderStage*/);
 };
 
 } //namespace lv

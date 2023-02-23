@@ -9,7 +9,7 @@
 #include <map>
 #include <iostream>
 
-#include "uniform_buffer.hpp"
+#include "buffer.hpp"
 #include "sampler.hpp"
 #include "pipeline_layout.hpp"
 
@@ -37,7 +37,7 @@ public:
     std::vector<VkDescriptorSet> descriptorSets;
 
     //uint16_t shaderType;
-    Vulkan_PipelineLayout& pipelineLayout;
+    Vulkan_PipelineLayout* pipelineLayout;
     uint8_t layoutIndex;
     VkDescriptorPool* pool;
 
@@ -46,8 +46,6 @@ public:
     std::vector<Vulkan_ImageInfo> imageInfos;
     std::vector<uint32_t> imageBindingIndices;
     std::vector<VkDescriptorType> descriptorTypes;
-
-    Vulkan_DescriptorSet(Vulkan_PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
 
     void init();
 

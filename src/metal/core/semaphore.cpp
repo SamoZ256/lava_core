@@ -5,7 +5,7 @@
 namespace lv {
 
 void Metal_Semaphore::init() {
-    if (frameCount == -1) frameCount = g_metal_swapChain->maxFramesInFlight;
+    if (frameCount == 0) frameCount = g_metal_swapChain->maxFramesInFlight;
 
     semaphore = dispatch_semaphore_create(frameCount);
 }

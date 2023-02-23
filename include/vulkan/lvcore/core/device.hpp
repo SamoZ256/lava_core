@@ -1,7 +1,6 @@
 #ifndef LV_VULKAN_DEVICE_H
 #define LV_VULKAN_DEVICE_H
 
-// std lib headers
 #include <string>
 #include <vector>
 #include <cstring>
@@ -9,7 +8,10 @@
 #include <set>
 #include <unordered_set>
 
-//#include "VMA.cpp"
+#include <vk_mem_alloc.h>
+
+#define LVND_BACKEND_VULKAN
+#include "lvnd/lvnd.h"
 
 #include "instance.hpp"
 
@@ -87,6 +89,8 @@ public:
 
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     std::vector<VkCommandPool> commandPools;
+
+    VmaAllocator allocator;
 
     VkDevice device_;
     VkSurfaceKHR surface_;

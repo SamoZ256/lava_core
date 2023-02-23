@@ -26,7 +26,7 @@ void Metal_Sampler::init() {
     sampler = g_metal_device->device->newSamplerState(samplerDesc);
 }
 
-void Metal_Sampler::bind(uint16_t index, LvShaderStage shaderStage) {
+void Metal_Sampler::_bind(uint16_t index, LvShaderStageFlags shaderStage) {
     switch (shaderStage) {
         case LV_SHADER_STAGE_FRAGMENT_BIT:
             g_metal_swapChain->activeRenderEncoder->setFragmentSamplerState(sampler, index);
