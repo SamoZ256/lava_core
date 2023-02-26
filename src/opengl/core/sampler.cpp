@@ -23,6 +23,7 @@ OpenGL_ImageInfo OpenGL_Sampler::descriptorInfo(OpenGL_ImageView& imageView, LvI
     OpenGL_ImageInfo info;
     info.image = imageView.image->image;
     info.sampler = sampler;
+    info.viewType = imageView.viewType;
     info.descriptorType = LV_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
     return info;

@@ -25,4 +25,16 @@ typedef Metal_VertexDescriptor VertexDescriptor;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/vertex_descriptor.hpp"
+
+namespace lv {
+
+typedef OpenGL_VertexDescriptor VertexDescriptor;
+
+} //namespace lv
+
+#endif
+
 #endif

@@ -35,7 +35,7 @@ public:
 
 	void bindIndexBuffer(VkIndexType indexType);
 
-	void render();
+	void render(size_t vertexSize);
 
 	void renderIndexed(size_t indexSize);
 

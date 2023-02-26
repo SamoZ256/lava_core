@@ -13,4 +13,10 @@
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/enums.hpp"
+
+#endif
+
 #endif

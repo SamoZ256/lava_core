@@ -83,15 +83,15 @@ void Vulkan_Framebuffer::init(Vulkan_RenderPass* aRenderPass) {
 
     //Clear values
     clearValues.resize(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1) + inputAttachments.size());
-    for (auto& colorAttachment : colorAttachments) {
-        clearValues[colorAttachment.index].color = {0.0f, 0.0f, 0.0f, 0.0f};
-    }
+    for (auto& colorAttachment : colorAttachments)
+        clearValues[colorAttachment.index].color = {0.0f, 0.0f, 0.0f, 1.0f};
 
     if (depthAttachment.index != -1)
         clearValues[depthAttachment.index].depthStencil = {1.0f, 0};
     
     for (auto& inputAttachment : inputAttachments) {
-        clearValues[inputAttachment.index].color = {0.0f, 0.0f, 0.0f, 0.0f};
+        clearValues[inputAttachment.index].color = {0.0f, 0.0f, 0.0f, 1.0f};
+        clearValues[inputAttachment.index].depthStencil = {1.0f, 0};
     }
 }
 

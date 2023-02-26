@@ -25,4 +25,16 @@ typedef Metal_Sampler Sampler;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/sampler.hpp"
+
+namespace lv {
+
+typedef OpenGL_Sampler Sampler;
+
+} //namespace lv
+
+#endif
+
 #endif

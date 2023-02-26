@@ -29,10 +29,10 @@ void Metal_ShaderModule::destroy() {
 void Metal_ShaderModule::compile() {
     NS::Error* pError = nullptr;
     if (createInfo.specializationConstants.size() == 0) {
-        function = library->newFunction(NS::String::string(createInfo.functionName, NS::UTF8StringEncoding));
+        function = library->newFunction(NS::String::string("main0", NS::UTF8StringEncoding));
     } else {
         MTL::FunctionDescriptor* functionDesc = MTL::FunctionDescriptor::alloc()->init();
-        functionDesc->setName(NS::String::string(createInfo.functionName, NS::UTF8StringEncoding));
+        functionDesc->setName(NS::String::string("main0", NS::UTF8StringEncoding));
 
         if (createInfo.specializationConstants.size() > 0) {
             MTL::FunctionConstantValues* constantValues = MTL::FunctionConstantValues::alloc()->init();

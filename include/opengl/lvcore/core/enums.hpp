@@ -12,9 +12,9 @@
 //Shader stage
 #define LvShaderStageFlags GLenum
 
-#define LV_SHADER_STAGE_VERTEX_BIT GL_VERTEX_SHADER
-#define LV_SHADER_STAGE_FRAGMENT_BIT GL_FRAGMENT_SHADER
-#define LV_SHADER_STAGE_COMPUTE_BIT GL_COMPUTE_SHADER
+#define LV_SHADER_STAGE_VERTEX_BIT 0x1
+#define LV_SHADER_STAGE_FRAGMENT_BIT 0x2
+#define LV_SHADER_STAGE_COMPUTE_BIT 0x4
 
 //Format
 #define LvFormat GLenum
@@ -111,8 +111,8 @@
 //DS
 
 //All
-#define LV_FORMAT_D24_UNORM_S8_UINT GL_DEPTH_STENCIL
-#define LV_FORMAT_D32_SFLOAT_S8_UINT GL_DEPTH_STENCIL
+#define LV_FORMAT_D24_UNORM_S8_UINT GL_DEPTH24_STENCIL8
+#define LV_FORMAT_D32_SFLOAT_S8_UINT GL_DEPTH32F_STENCIL8
 
 //Cull mode
 #define LvCullModeFlags GLenum
@@ -173,15 +173,15 @@
 //Load Op
 #define LvAttachmentLoadOp uint8_t
 
-#define LV_ATTACHMENT_LOAD_OP_DONT_CARE LV_ATTACHMENT_LOAD_OP_LOAD
-#define LV_ATTACHMENT_LOAD_OP_CLEAR 2
-#define LV_ATTACHMENT_LOAD_OP_LOAD 1
+#define LV_ATTACHMENT_LOAD_OP_DONT_CARE uint8_t(1)
+#define LV_ATTACHMENT_LOAD_OP_CLEAR uint8_t(2)
+#define LV_ATTACHMENT_LOAD_OP_LOAD uint8_t(3)
 
 //Store Op
 #define LvAttachmentStoreOp uint8_t
 
-#define LV_ATTACHMENT_STORE_OP_DONT_CARE 1
-#define LV_ATTACHMENT_STORE_OP_STORE 2
+#define LV_ATTACHMENT_STORE_OP_DONT_CARE uint8_t(1)
+#define LV_ATTACHMENT_STORE_OP_STORE uint8_t(2)
 
 //Compare op
 #define LvCompareOp GLenum
@@ -192,12 +192,12 @@
 #define LV_COMPARE_OP_EQUAL GL_EQUAL
 #define LV_COMPARE_OP_LESS_OR_EQUAL GL_LEQUAL
 #define LV_COMPARE_OP_GREATER GL_GREATER
-#define LV_COMPARE_OP_NOT_EQUAL GL_NOT_EQUAL
+#define LV_COMPARE_OP_NOT_EQUAL GL_NOTEQUAL
 #define LV_COMPARE_OP_GREATER_OR_EQUAL GL_GEQUAL
 #define LV_COMPARE_OP_ALWAYS GL_ALWAYS
 
 //Vertex format
-#define LvVertexFormat VkFormat
+#define LvVertexFormat uint32_t
 
 #define LV_OPENGL_VERTEX_FORMAT_MAKE(numberComponents, type) (numberComponents * 1000000 + type)
 #define LV_OPENGL_VERTEX_FORMAT_GET(vertexFormat, numberComponents, type) \

@@ -3,6 +3,8 @@
 
 #include "enums.hpp"
 
+#include "semaphore.hpp"
+
 namespace lv {
 
 class OpenGL_CommandBuffer {
@@ -19,8 +21,7 @@ public:
 
     void unbind() {}
 
-    //TODO: uncomment
-    //void submit(OpenGL_Semaphore* waitSemaphore = nullptr, OpenGL_Semaphore* signalSemaphore = nullptr) {}
+    void submit(OpenGL_Semaphore* waitSemaphore = nullptr, OpenGL_Semaphore* signalSemaphore = nullptr) {}
 };
 
 } //namespace lv

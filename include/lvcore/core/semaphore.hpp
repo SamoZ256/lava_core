@@ -25,4 +25,16 @@ typedef Metal_Semaphore Semaphore;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/semaphore.hpp"
+
+namespace lv {
+
+typedef OpenGL_Semaphore Semaphore;
+
+} //namespace lv
+
+#endif
+
 #endif

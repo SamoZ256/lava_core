@@ -25,4 +25,16 @@ typedef Metal_Buffer Buffer;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/buffer.hpp"
+
+namespace lv {
+
+typedef OpenGL_Buffer Buffer;
+
+} //namespace lv
+
+#endif
+
 #endif

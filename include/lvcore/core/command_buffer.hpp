@@ -25,4 +25,16 @@ typedef Metal_CommandBuffer CommandBuffer;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/command_buffer.hpp"
+
+namespace lv {
+
+typedef OpenGL_CommandBuffer CommandBuffer;
+
+} //namespace lv
+
+#endif
+
 #endif

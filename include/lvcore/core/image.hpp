@@ -25,4 +25,16 @@ typedef Metal_Image Image;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/image.hpp"
+
+namespace lv {
+
+typedef OpenGL_Image Image;
+
+} //namespace lv
+
+#endif
+
 #endif

@@ -29,4 +29,18 @@ typedef Metal_GraphicsPipeline GraphicsPipeline;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/graphics_pipeline.hpp"
+
+namespace lv {
+
+typedef OpenGL_GraphicsPipelineConfig GraphicsPipelineConfig;
+typedef OpenGL_GraphicsPipelineCreateInfo GraphicsPipelineCreateInfo;
+typedef OpenGL_GraphicsPipeline GraphicsPipeline;
+
+} //namespace lv
+
+#endif
+
 #endif

@@ -27,4 +27,17 @@ typedef Metal_ShaderModule ShaderModule;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/shader_module.hpp"
+
+namespace lv {
+
+typedef OpenGL_ShaderModuleCreateInfo ShaderModuleCreateInfo;
+typedef OpenGL_ShaderModule ShaderModule;
+
+} //namespace lv
+
+#endif
+
 #endif

@@ -10,9 +10,17 @@
 
 #include "graphics_pipeline.hpp"
 #include "command_buffer.hpp"
-#include "framebuffer.hpp"
 
 namespace lv {
+
+class OpenGL_SwapChainFramebuffer {
+public:
+    //bool clearAttachment;
+
+    void bind();
+
+    void unbind() {}
+};
 
 struct OpenGL_SwapChainCreateInfo {
 	LvndWindow* window;
@@ -25,8 +33,12 @@ class OpenGL_SwapChain {
 public:
     LvndWindow* _window;
 
-    OpenGL_Framebuffer framebuffer;
+    OpenGL_SwapChainFramebuffer framebuffer;
     OpenGL_CommandBuffer commandBuffer;
+
+    LvFormat depthFormat = LV_FORMAT_D32_SFLOAT;
+
+    static GLuint emptyVertexArrayObject;
 
     OpenGL_SwapChain(OpenGL_SwapChainCreateInfo& createInfo);
 
@@ -34,20 +46,20 @@ public:
 
     void destroy() {}
 
-    void resize(LvndWindow* window) { lvndOpenGLResize(_window); }
+    void resize(LvndWindow* window);
 
     void acquireNextImage() {}
 
-    void renderAndPresent() { lvndOpenGLSwapBuffers(_window); }
+    void renderAndPresent();
 
-    void renderFullscreenTriangle() { glDrawArrays(GL_TRIANGLES, 0, 3); }
+    void renderFullscreenTriangle();
 
     uint32_t width() { return _width; }
 
     uint32_t height() { return _height; }
 
     //Currently active
-    //TODO: add this
+    static OpenGL_GraphicsPipeline* activeGraphicsPipeline;
 
 private:
     uint32_t _width, _height;

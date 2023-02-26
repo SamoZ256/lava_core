@@ -53,6 +53,10 @@ void Vulkan_Buffer::bindIndexBuffer(VkIndexType indexType) {
     vkCmdBindIndexBuffer(g_vulkan_swapChain->getActiveCommandBuffer(), buffers[std::min(g_vulkan_swapChain->crntFrame, uint8_t(frameCount - 1))], 0, indexType);
 }
 
+void Vulkan_Buffer::render(size_t vertexSize) {
+    vkCmdDraw(g_vulkan_swapChain->getActiveCommandBuffer(), size / vertexSize, 1, 0, 0);
+}
+
 void Vulkan_Buffer::renderIndexed(size_t indexSize) {
     vkCmdDrawIndexed(g_vulkan_swapChain->getActiveCommandBuffer(), size / indexSize, 1, 0, 0, 0);
 }

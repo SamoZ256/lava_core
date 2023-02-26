@@ -25,4 +25,16 @@ typedef Metal_Framebuffer Framebuffer;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/framebuffer.hpp"
+
+namespace lv {
+
+typedef OpenGL_Framebuffer Framebuffer;
+
+} //namespace lv
+
+#endif
+
 #endif

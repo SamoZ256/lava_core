@@ -25,4 +25,16 @@ typedef Metal_Viewport Viewport;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/viewport.hpp"
+
+namespace lv {
+
+typedef OpenGL_Viewport Viewport;
+
+} //namespace lv
+
+#endif
+
 #endif

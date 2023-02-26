@@ -26,13 +26,15 @@ public:
 
     void init(uint16_t aWidth, uint16_t aHeight);
 
+    void initFromFile(const char* filename);
+
     void destroy() { glDeleteTextures(1, &image); }
 
     void copyDataTo(uint8_t threadIndex, void* data);
 
     void transitionLayout(uint8_t threadIndex, uint8_t imageIndex, LvImageLayout srcLayout, LvImageLayout dstLayout) {}
 
-    void generateMipmaps();
+    void generateMipmaps(uint8_t threadIndex);
 
     void copyToFromImage(uint8_t threadIndex, OpenGL_Image& source);
 

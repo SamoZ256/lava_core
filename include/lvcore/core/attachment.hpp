@@ -29,4 +29,18 @@ typedef Metal_FramebufferAttachment FramebufferAttachment;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/attachment.hpp"
+
+namespace lv {
+
+typedef OpenGL_RenderPassAttachment RenderPassAttachment;
+typedef OpenGL_SubpassAttachment SubpassAttachment;
+typedef OpenGL_FramebufferAttachment FramebufferAttachment;
+
+} //namespace lv
+
+#endif
+
 #endif

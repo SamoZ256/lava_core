@@ -25,4 +25,16 @@ typedef Metal_ShaderBundle ShaderBundle;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/shader_bundle.hpp"
+
+namespace lv {
+
+typedef OpenGL_ShaderBundle ShaderBundle;
+
+} //namespace lv
+
+#endif
+
 #endif

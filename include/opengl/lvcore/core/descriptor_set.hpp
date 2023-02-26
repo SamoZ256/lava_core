@@ -7,7 +7,7 @@
 
 #include "pipeline_layout.hpp"
 #include "sampler.hpp"
-#include "uniform_buffer.hpp"
+#include "buffer.hpp"
 
 namespace lv {
 
@@ -15,29 +15,29 @@ class OpenGL_DescriptorSet {
 public:
     uint8_t frameCount = 0;
 
-    //TODO: uncomment
-    //OpenGL_PipelineLayout& pipelineLayout;
+    OpenGL_PipelineLayout* pipelineLayout;
     uint8_t layoutIndex;
 
-    std::vector<std::vector<GLuint> > buffers;
-    std::vector<uint32_t> bufferBindingIndices;
-    std::vector<std::vector<GLuint> > textures;
-    std::vector<uint32_t> textureBindingIndices;
-    std::vector<GLuint> samplers;
-    std::vector<uint32_t> samplerBindingIndices;
+    bool firstTimeBound = true;
 
-    //TODO: uncomment
-    //OpenGL_DescriptorSet(OpenGL_PipelineLayout& aPipelineLayout, uint8_t aLayoutIndex) : pipelineLayout(aPipelineLayout), layoutIndex(aLayoutIndex) {}
+    std::vector<OpenGL_BufferInfo> bufferInfos;
+    std::vector<uint32_t> bufferBindingIndices;
+    std::vector<OpenGL_ImageInfo> imageInfos;
+    std::vector<uint32_t> imageBindingIndices;
 
     void init() {}
 
     void destroy() {}
 
-    //TODO: uncomment
-    //void addBinding(OpenGL_BufferInfo bufferInfo, uint32_t binding);
+    void addBinding(OpenGL_BufferInfo bufferInfo, uint32_t binding) {
+        bufferInfos.push_back(bufferInfo);
+        bufferBindingIndices.push_back(binding);
+    }
 
-    //TODO: uncomment
-    //void addBinding(OpenGL_ImageInfo imageInfo, uint32_t binding);
+    void addBinding(OpenGL_ImageInfo imageInfo, uint32_t binding) {
+        imageInfos.push_back(imageInfo);
+        imageBindingIndices.push_back(binding);
+    }
 
     void bind();
 };

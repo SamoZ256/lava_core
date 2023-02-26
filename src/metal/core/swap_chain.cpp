@@ -29,7 +29,9 @@ Metal_SwapChain::Metal_SwapChain(Metal_SwapChainCreateInfo& createInfo) {
     });
 
     renderPass.addColorAttachment({
-        .index = 0
+        .format = colorImage.format,
+        .index = 0,
+        .loadOp = (createInfo.clearAttachment ? LV_ATTACHMENT_LOAD_OP_CLEAR : LV_ATTACHMENT_LOAD_OP_DONT_CARE)
     });
 
     renderPass.init();

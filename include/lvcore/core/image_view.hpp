@@ -25,4 +25,16 @@ typedef Metal_ImageView ImageView;
 
 #endif
 
+#ifdef LV_BACKEND_OPENGL
+
+#include "opengl/lvcore/core/image_view.hpp"
+
+namespace lv {
+
+typedef OpenGL_ImageView ImageView;
+
+} //namespace lv
+
+#endif
+
 #endif

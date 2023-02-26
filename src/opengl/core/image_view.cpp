@@ -22,6 +22,7 @@ void OpenGL_ImageView::init(OpenGL_Image* aImage) {
 OpenGL_ImageInfo OpenGL_ImageView::descriptorInfo(LvDescriptorType descriptorType, LvImageLayout imageLayout) {
     OpenGL_ImageInfo info;
     info.image = image->image;
+    info.viewType = viewType;
     info.descriptorType = descriptorType;
 
     return info;

@@ -7,33 +7,49 @@
 
 namespace lv {
 
+struct OpenGL_BufferInfo {
+    GLuint buffer;
+    LvDescriptorType descriptorType;
+};
+
+//TODO: check if the buffer is allocated whenever using it
 class OpenGL_Buffer {
 public:
     uint8_t frameCount = 0;
 
-    GLenum buffer;
+    GLuint buffer;
+
+    GLuint vertexAttributeObject;
+    bool hasVertexArrayObject = false;
+    bool createdVertexArrayObject = false;
+
     size_t size;
 
     LvBufferUsageFlags usage = 0;
+    LvMemoryType memoryType = LV_MEMORY_TYPE_PRIVATE;
+    LvMemoryAllocationCreateFlags memoryAllocationFlags = 0;
 
     void init(size_t aSize);
 
-    void destroy() { glDeleteBuffers(1, &buffer); }
+    void destroy();
 
     void copyDataTo(uint8_t threadIndex, void* data);
 
-    void bindVertexBuffer() { glBindBuffer(GL_ARRAY_BUFFER, buffer); }
+    void bindVertexBuffer();
 
     void bindIndexBuffer(LvIndexType aIndexType);
 
-    void render(size_t vertexSize) { glDrawArrays(GL_TRIANGLES, 0, size / vertexSize); }
+    void render(size_t vertexSize);
 
-    void renderIndexed(size_t indexSize) { glDrawElements(GL_TRIANGLES, size / indexSize, indexType, 0); }
+    void renderIndexed(size_t indexSize);
+
+    OpenGL_BufferInfo descriptorInfo();
 
 private:
     LvIndexType indexType;
     GLenum bindTarget = 0;
     GLenum bufferUsage = GL_DYNAMIC_DRAW;
+    bool allocated;
 };
 
 } //namespace lv

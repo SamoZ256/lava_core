@@ -7,6 +7,12 @@
 
 namespace lv {
 
+struct OpenGL_ClearValue {
+    float r, g, b, a;
+    float depth;
+    uint32_t stencil;
+};
+
 class OpenGL_Framebuffer {
 public:
     uint8_t frameCount = 0;
@@ -18,6 +24,8 @@ public:
     std::vector<OpenGL_FramebufferAttachment> colorAttachments;
     OpenGL_FramebufferAttachment depthAttachment;
     std::vector<OpenGL_FramebufferAttachment> inputAttachments;
+
+    std::vector<OpenGL_ClearValue> clearValues;
 
     void init(OpenGL_RenderPass* aRenderPass);
 

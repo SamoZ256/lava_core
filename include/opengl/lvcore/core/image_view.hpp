@@ -10,6 +10,7 @@ namespace lv {
 struct OpenGL_ImageInfo {
     GLuint image;
     GLuint sampler;
+    LvImageViewType viewType;
     LvDescriptorType descriptorType;
 };
 

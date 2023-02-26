@@ -27,4 +27,6 @@ typedef Metal_ComputePipeline ComputePipeline;
 
 #endif
 
+//TODO: implement compute pipeline for devices supporting newer versions of OpenGL
+
 #endif
