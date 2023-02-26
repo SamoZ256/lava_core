@@ -38,9 +38,9 @@ void Vulkan_Buffer::copyDataTo(uint8_t threadIndex, void* data) {
         vmaDestroyBuffer(g_vulkan_device->allocator, stagingBuffer, stagingAllocation);
     } else if (memoryType == LV_MEMORY_TYPE_SHARED) {
         void* mappedData;
-        vmaMapMemory(g_vulkan_device->allocator, allocations[g_vulkan_swapChain->imageIndex], &mappedData);
+        vmaMapMemory(g_vulkan_device->allocator, allocations[index], &mappedData);
         memcpy(mappedData, data, size);
-        vmaUnmapMemory(g_vulkan_device->allocator, allocations[g_vulkan_swapChain->imageIndex]);
+        vmaUnmapMemory(g_vulkan_device->allocator, allocations[index]);
     }
 }
 
