@@ -233,7 +233,7 @@
 #define LV_IMAGE_ASPECT_DEPTH_BIT 0x2
 #define LV_IMAGE_ASPECT_STENCIL_BIT 0x4
 
-//Memory usage
+//Memory type
 #define LvMemoryType MTL::StorageMode
 
 #define LV_MEMORY_TYPE_PRIVATE MTL::StorageModePrivate

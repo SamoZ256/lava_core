@@ -2,7 +2,7 @@
 #define LV_VULKAN_BUFFER_HELPER_H
 
 #include <vulkan/vulkan.h>
-#include <vma/vk_mem_alloc.h>
+#include <vk_mem_alloc.h>
 
 namespace lv {
 

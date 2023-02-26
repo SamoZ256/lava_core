@@ -1,7 +1,7 @@
 #ifndef LV_VULKAN_ENUMS_H
 #define LV_VULKAN_ENUMS_H
 
-#include <vma/vk_mem_alloc.h>
+#include <vk_mem_alloc.h>
 
 //Bool
 #define LvBool uint8_t

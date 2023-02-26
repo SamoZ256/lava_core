@@ -2,7 +2,7 @@
 #define LV_VULKAN_IMAGE_HELPER_H
 
 #include "common.hpp"
-#include <vma/vk_mem_alloc.h>
+#include <vk_mem_alloc.h>
 
 namespace lv {
 

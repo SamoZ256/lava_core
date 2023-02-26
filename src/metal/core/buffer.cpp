@@ -3,6 +3,8 @@
 #include "metal/lvcore/core/device.hpp"
 #include "metal/lvcore/core/swap_chain.hpp"
 
+#include <iostream>
+
 namespace lv {
 
 void Metal_Buffer::init(size_t aSize) {
@@ -10,9 +12,17 @@ void Metal_Buffer::init(size_t aSize) {
 
     size = aSize;
 
+    MTL::ResourceOptions options = 0;
+    if (memoryType == LV_MEMORY_TYPE_PRIVATE)
+        options |= MTL::ResourceStorageModePrivate;
+    else if (memoryType == LV_MEMORY_TYPE_SHARED)
+        options |= MTL::ResourceStorageModeShared;
+    else if (memoryType == LV_MEMORY_TYPE_MEMORYLESS)
+        options |= MTL::ResourceStorageModeMemoryless;
+
     buffers.resize(frameCount);
     for (uint8_t i = 0; i < frameCount; i++)
-        buffers[i] = g_metal_device->device->newBuffer(size, MTL::ResourceStorageModePrivate);
+        buffers[i] = g_metal_device->device->newBuffer(size, options);
 }
 
 void Metal_Buffer::destroy() {
@@ -30,7 +40,7 @@ void Metal_Buffer::copyDataTo(uint8_t threadIndex, void* data) {
 
         stagingBuffer->release();
     } else if (memoryType == LV_MEMORY_TYPE_SHARED) {
-        memcpy(buffers[index]->contents(), data, size); 
+        memcpy(buffers[index]->contents(), data, size);
     }
 }
 
