@@ -27,9 +27,7 @@ public:
     std::vector<Vulkan_Subpass*> subpasses;
     std::vector<VkSubpassDependency> dependencies;
 
-    std::vector<Vulkan_RenderPassAttachment> colorAttachments;
-    Vulkan_RenderPassAttachment depthAttachment;
-    std::vector<Vulkan_RenderPassAttachment> inputAttachments;
+    std::vector<Vulkan_RenderPassAttachment> attachments;
 
     void init();
 
@@ -37,11 +35,7 @@ public:
 
     void addSubpass(Vulkan_Subpass* subpass) { subpasses.push_back(subpass); }
 
-    void addColorAttachment(Vulkan_RenderPassAttachment attachment) { colorAttachments.push_back(attachment); }
-
-    void setDepthAttachment(Vulkan_RenderPassAttachment attachment) { depthAttachment = attachment; }
-
-    void addInputAttachment(Vulkan_RenderPassAttachment attachment) { inputAttachments.push_back(attachment); }
+    void addAttachment(Vulkan_RenderPassAttachment attachment) { attachments.push_back(attachment); }
 };
 
 } //namespace lv

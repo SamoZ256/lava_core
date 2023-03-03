@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <cmath>
 
 #include <stb/stb_image.h>
 
@@ -45,7 +46,7 @@ void OpenGL_Image::init(uint16_t aWidth, uint16_t aHeight) {
     //glTexParameterf(viewType, GL_TEXTURE_MAX_LOD, 0.0f);
 }
 
-void OpenGL_Image::initFromFile(const char* filename) {
+void OpenGL_Image::initFromFile(const char* filename, bool bGenerateMipmaps) {
     int aWidth, aHeight, nbChannels;
     void* data = (void*)stbi_load(filename, &aWidth, &aHeight, &nbChannels, STBI_rgb_alpha);
     width = aWidth;
@@ -55,10 +56,16 @@ void OpenGL_Image::initFromFile(const char* filename) {
         throw std::runtime_error(("Failed to load image '" + std::string(filename) + "'").c_str());
     }
 
+    if (bGenerateMipmaps)
+        mipCount = std::max(ceil(log2(width)), ceil(log2(height)));
+
     init(width, height);
     copyDataTo(0, data);
 
     stbi_image_free(data);
+
+    if (bGenerateMipmaps)
+        generateMipmaps(0);
 }
 
 void OpenGL_Image::copyDataTo(uint8_t threadIndex, void* data) {

@@ -8,16 +8,22 @@
 
 namespace lv {
 
+struct Metal_FramebufferSubpass {
+    std::vector<MTL::RenderPassDescriptor*> renderPasses;
+    MTL::RenderCommandEncoder* encoder = nullptr;
+};
+
 class Metal_Framebuffer {
 public:
     uint8_t frameCount = 0;
 
-    std::vector<MTL::RenderPassDescriptor*> renderPasses;
-    MTL::RenderCommandEncoder* encoder = nullptr;
+    uint8_t crntSubpass = 0;
+
+    std::vector<Metal_FramebufferSubpass> subpasses;
 
     std::vector<Metal_FramebufferAttachment> colorAttachments;
     Metal_FramebufferAttachment depthAttachment;
-    std::vector<Metal_FramebufferAttachment> inputAttachments;
+    std::vector<Metal_FramebufferAttachment*> sortedAttachments;
 
     void init(Metal_RenderPass* renderPass);
 
@@ -27,11 +33,15 @@ public:
 
     void setDepthAttachment(Metal_FramebufferAttachment attachment) { depthAttachment = attachment; }
 
-    void addInputAttachment(Metal_FramebufferAttachment attachment) { inputAttachments.push_back(attachment); }
-
     void bind();
 
     void unbind();
+
+    void nextSubpass();
+
+    void _beginSubpass();
+
+    void _endSubpass();
 };
 
 } //namespace lv

@@ -5,14 +5,9 @@
 namespace lv {
 
 void Metal_RenderPass::init() {
-    sortedAttachments.resize(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1) + inputAttachments.size());
-    for (uint8_t i = 0; i < colorAttachments.size(); i++) {
-        sortedAttachments[colorAttachments[i].index] = &colorAttachments[i];
-    }
-    if (depthAttachment.index != -1) sortedAttachments[depthAttachment.index] = &depthAttachment;
-    for (uint8_t i = 0; i < inputAttachments.size(); i++) {
-        sortedAttachments[inputAttachments[i].index] = &inputAttachments[i];
-    }
+    sortedAttachments.resize(attachments.size());
+    for (uint8_t i = 0; i < attachments.size(); i++)
+        sortedAttachments[attachments[i].index] = &attachments[i];
 }
 
 } //namespace lv

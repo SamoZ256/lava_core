@@ -7,6 +7,7 @@
 
 namespace lv {
 
+typedef Vulkan_ColorBlendAttachment ColorBlendAttachment;
 typedef Vulkan_RenderPassAttachment RenderPassAttachment;
 typedef Vulkan_SubpassAttachment SubpassAttachment;
 typedef Vulkan_FramebufferAttachment FramebufferAttachment;
@@ -21,6 +22,7 @@ typedef Vulkan_FramebufferAttachment FramebufferAttachment;
 
 namespace lv {
 
+typedef Metal_ColorBlendAttachment ColorBlendAttachment;
 typedef Metal_RenderPassAttachment RenderPassAttachment;
 typedef Metal_SubpassAttachment SubpassAttachment;
 typedef Metal_FramebufferAttachment FramebufferAttachment;
@@ -35,6 +37,7 @@ typedef Metal_FramebufferAttachment FramebufferAttachment;
 
 namespace lv {
 
+typedef Vulkan_ColorBlendAttachment ColorBlendAttachment;
 typedef OpenGL_RenderPassAttachment RenderPassAttachment;
 typedef OpenGL_SubpassAttachment SubpassAttachment;
 typedef OpenGL_FramebufferAttachment FramebufferAttachment;

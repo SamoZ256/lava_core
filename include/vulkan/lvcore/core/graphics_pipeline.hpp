@@ -32,26 +32,20 @@ struct Vulkan_GraphicsPipelineConfig {
     VkCompareOp depthOp = VK_COMPARE_OP_LESS;
 };
 
-struct Vulkan_GraphicsPipelineCreateInfo {
+class Vulkan_GraphicsPipeline {
+public:
+    VkPipeline graphicsPipeline;
+
     Vulkan_ShaderModule* vertexShaderModule;
     Vulkan_ShaderModule* fragmentShaderModule;
     Vulkan_PipelineLayout* pipelineLayout;
     Vulkan_RenderPass* renderPass;
-
+    uint8_t subpassIndex = 0;
     Vulkan_VertexDescriptor* vertexDescriptor = nullptr;
-
     Vulkan_GraphicsPipelineConfig config;
-};
+    std::vector<Vulkan_ColorBlendAttachment> colorBlendAttachments;
 
-class Vulkan_GraphicsPipeline {
-public:
-    VkPipeline graphicsPipeline;
-    
-    Vulkan_PipelineLayout* pipelineLayout;
-
-    Vulkan_GraphicsPipelineCreateInfo createInfo;
-
-    void init(Vulkan_GraphicsPipelineCreateInfo& aCreateInfo);
+    void init();
 
     void destroy();
 
@@ -59,13 +53,13 @@ public:
 
     void recompile();
 
-    //void createPipelineLayout();
-
     void uploadPushConstants(void* data, uint8_t index);
 
     void bind();
 
-    static Vulkan_PipelineConfigInfo defaultPipelineConfigInfo(Vulkan_GraphicsPipelineConfig& config, Vulkan_GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo);
+    void addColorBlendAttachment(Vulkan_ColorBlendAttachment attachment) { colorBlendAttachments.push_back(attachment); }
+
+    Vulkan_PipelineConfigInfo defaultPipelineConfigInfo();
 };
 
 } //namespace lv

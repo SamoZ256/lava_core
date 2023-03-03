@@ -8,39 +8,26 @@ namespace lv {
 
 Metal_SwapChain* g_metal_swapChain = nullptr;
 
+void Metal_SwapChainFramebuffer::bind() {
+    encoder = g_metal_swapChain->commandBuffer.commandBuffers[g_metal_swapChain->crntFrame]->renderCommandEncoder(renderPass);
+
+    g_metal_swapChain->activeRenderPass = renderPass;
+    g_metal_swapChain->activeRenderEncoder = encoder;
+}
+
+void Metal_SwapChainFramebuffer::unbind() {
+    encoder->endEncoding();
+    renderPass->release();
+    encoder->release();
+}
+
 Metal_SwapChain::Metal_SwapChain(Metal_SwapChainCreateInfo& createInfo) {
     g_metal_swapChain = this;
 
     maxFramesInFlight = createInfo.maxFramesInFlight;
-
-    framebuffer.frameCount = 1;
+    clearAttachment = createInfo.clearAttachment;
 
     commandBuffer.init();
-
-    colorImage.frameCount = 1;
-    colorImage.format = MTL::PixelFormatBGRA8Unorm_sRGB;
-    colorImage.images.resize(1);
-
-    colorImageView.layerCount = 1;
-    colorImageView.mipCount = 1;
-
-    subpass.addColorAttachment({
-        .index = 0
-    });
-
-    renderPass.addColorAttachment({
-        .format = colorImage.format,
-        .index = 0,
-        .loadOp = (createInfo.clearAttachment ? LV_ATTACHMENT_LOAD_OP_CLEAR : LV_ATTACHMENT_LOAD_OP_DONT_CARE)
-    });
-
-    renderPass.init();
-
-    framebuffer.addColorAttachment({
-        .imageView = &colorImageView,
-        .index = 0
-    });
-    //framebuffer.setDepthAttachment({&depthAttachment, 1});
 
     init(createInfo.window);
 
@@ -80,8 +67,6 @@ void Metal_SwapChain::init(LvndWindow* window) {
 }
 
 void Metal_SwapChain::destroy() {
-    colorImage.destroy();
-    //framebuffer.destroy();
     semaphore.destroy();
 }
 
@@ -96,10 +81,12 @@ void Metal_SwapChain::acquireNextImage() {
         throw std::runtime_error("Failed to acquire drawable");
     }
 
-    colorImage.images[0] = drawable->texture();
-    colorImageView.init(&colorImage);
-
-    framebuffer.init(&renderPass);
+    framebuffer.renderPass = MTL::RenderPassDescriptor::alloc()->init();
+    MTL::RenderPassColorAttachmentDescriptor* attachment = framebuffer.renderPass->colorAttachments()->object(0);
+    attachment->setClearColor(MTL::ClearColor::Make(0.0f, 0.0f, 0.0f, 1.0f));
+    attachment->setLoadAction(clearAttachment ? LV_ATTACHMENT_LOAD_OP_CLEAR : LV_ATTACHMENT_LOAD_OP_DONT_CARE);
+    attachment->setStoreAction(LV_ATTACHMENT_STORE_OP_STORE);
+    attachment->setTexture(drawable->texture());
 }
 
 void Metal_SwapChain::renderAndPresent() {
@@ -110,7 +97,6 @@ void Metal_SwapChain::renderAndPresent() {
 
     commandBuffer.commandBuffers[crntFrame]->presentDrawable(drawable);
     commandBuffer.submit();
-    framebuffer.destroy();
 
     crntFrame = (crntFrame + 1) % maxFramesInFlight;
 }

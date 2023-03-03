@@ -7,16 +7,9 @@
 namespace lv {
 
 void Vulkan_RenderPass::init() {
-    std::vector<VkAttachmentDescription> attachmentDescriptions(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1) + inputAttachments.size());
-    for (int i = 0; i < colorAttachments.size(); i++) {
-        attachmentDescriptions[colorAttachments[i].index] = colorAttachments[i].getAttachmentDescription();
-    }
-    if (depthAttachment.index != -1) {
-        attachmentDescriptions[depthAttachment.index] = depthAttachment.getAttachmentDescription();
-    }
-    for (int i = 0; i < inputAttachments.size(); i++) {
-        attachmentDescriptions[inputAttachments[i].index] = inputAttachments[i].getAttachmentDescription();
-    }
+    std::vector<VkAttachmentDescription> attachmentDescriptions(attachments.size());
+    for (int i = 0; i < attachments.size(); i++)
+        attachmentDescriptions[attachments[i].index] = attachments[i].getAttachmentDescription();
 
     /*
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -54,18 +47,19 @@ void Vulkan_RenderPass::init() {
     std::vector<std::vector<VkAttachmentReference> > inputAttachmentReferences(subpasses.size());
     for (uint8_t i = 0; i < subpasses.size(); i++) {
         colorAttachmentReferences[i].resize(subpasses[i]->colorAttachments.size());
-        for (int j = 0; j < colorAttachmentReferences[i].size(); j++) {
+        for (int j = 0; j < colorAttachmentReferences[i].size(); j++)
             colorAttachmentReferences[i][j] = subpasses[i]->colorAttachments[j].getAttachmentReference();
-        }
 
-        if (subpasses[i]->depthAttachment.index != -1) {
+        if (subpasses[i]->depthAttachment.index != -1)
             depthAttachmentReferences[i] = subpasses[i]->depthAttachment.getAttachmentReference();
-        }
 
         inputAttachmentReferences[i].resize(subpasses[i]->inputAttachments.size());
-        for (int j = 0; j < inputAttachmentReferences[i].size(); j++) {
+        for (int j = 0; j < inputAttachmentReferences[i].size(); j++)
             inputAttachmentReferences[i][j] = subpasses[i]->inputAttachments[j].getAttachmentReference();
-        }
+
+        //std::cout << "Color attachments: " << colorAttachmentReferences[i].size() << std::endl;
+        //std::cout << "Depth attachment: " << (subpasses[i]->depthAttachment.index != -1) << std::endl;
+        //std::cout << "Input attachments: " << inputAttachmentReferences[i].size() << std::endl;
 
         subpassDescs[i] = {};
         subpassDescs[i].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;

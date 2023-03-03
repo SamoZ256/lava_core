@@ -28,8 +28,10 @@ void Metal_DescriptorSet::addBinding(Metal_BufferInfo bufferInfo, uint32_t bindi
 void Metal_DescriptorSet::addBinding(Metal_ImageInfo imageInfo, uint32_t binding) {
     textures.push_back(imageInfo.imageViews);
     textureBindingIndices.push_back(binding);
-    samplers.push_back(imageInfo.sampler);
-    samplerBindingIndices.push_back(binding);
+    if (imageInfo.descriptorType == LV_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+        samplers.push_back(imageInfo.sampler);
+        samplerBindingIndices.push_back(binding);
+    }
 }
 
 void Metal_DescriptorSet::bind() {

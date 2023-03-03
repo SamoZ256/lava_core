@@ -8,7 +8,6 @@
 namespace lv {
 
 typedef Vulkan_GraphicsPipelineConfig GraphicsPipelineConfig;
-typedef Vulkan_GraphicsPipelineCreateInfo GraphicsPipelineCreateInfo;
 typedef Vulkan_GraphicsPipeline GraphicsPipeline;
 
 } //namespace lv
@@ -22,7 +21,6 @@ typedef Vulkan_GraphicsPipeline GraphicsPipeline;
 namespace lv {
 
 typedef Metal_GraphicsPipelineConfig GraphicsPipelineConfig;
-typedef Metal_GraphicsPipelineCreateInfo GraphicsPipelineCreateInfo;
 typedef Metal_GraphicsPipeline GraphicsPipeline;
 
 } //namespace lv
@@ -36,7 +34,6 @@ typedef Metal_GraphicsPipeline GraphicsPipeline;
 namespace lv {
 
 typedef OpenGL_GraphicsPipelineConfig GraphicsPipelineConfig;
-typedef OpenGL_GraphicsPipelineCreateInfo GraphicsPipelineCreateInfo;
 typedef OpenGL_GraphicsPipeline GraphicsPipeline;
 
 } //namespace lv

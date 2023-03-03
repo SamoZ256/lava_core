@@ -18,7 +18,6 @@ void OpenGL_ShaderModule::destroy() {
 }
 
 void OpenGL_ShaderModule::compile() {
-    std::cout << "Shader module 1: " << glGetError() << std::endl;
     if (createInfo.shaderStage & LV_SHADER_STAGE_VERTEX_BIT)
         shader = glCreateShader(GL_VERTEX_SHADER);
     else if (createInfo.shaderStage & LV_SHADER_STAGE_FRAGMENT_BIT)
@@ -36,7 +35,6 @@ void OpenGL_ShaderModule::compile() {
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
         LV_ERROR("ShaderModule::compile: failed to compile shader. Log:\n" + std::string(infoLog));
     }
-    std::cout << "Shader module 2: " << glGetError() << std::endl;
 }
 
 void OpenGL_ShaderModule::recompile() {

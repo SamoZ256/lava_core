@@ -9,10 +9,7 @@
 
 namespace lv {
 
-void OpenGL_GraphicsPipeline::init(OpenGL_GraphicsPipelineCreateInfo& aCreateInfo) {
-    createInfo = aCreateInfo;
-    pipelineLayout = createInfo.pipelineLayout;
-
+void OpenGL_GraphicsPipeline::init() {
     compile();
 }
 
@@ -23,8 +20,8 @@ void OpenGL_GraphicsPipeline::destroy() {
 void OpenGL_GraphicsPipeline::compile() {
     shaderProgram = glCreateProgram();
 
-    glAttachShader(shaderProgram, createInfo.vertexShaderModule->shader);
-    glAttachShader(shaderProgram, createInfo.fragmentShaderModule->shader);
+    glAttachShader(shaderProgram, vertexShaderModule->shader);
+    glAttachShader(shaderProgram, fragmentShaderModule->shader);
     glLinkProgram(shaderProgram);
 
     int success;
@@ -36,7 +33,7 @@ void OpenGL_GraphicsPipeline::compile() {
     }
 
     //Get the bindings
-    OpenGL_ShaderBundle* shaderBundles[2] = {createInfo.vertexShaderModule->shaderBundle, createInfo.fragmentShaderModule->shaderBundle};
+    OpenGL_ShaderBundle* shaderBundles[2] = {vertexShaderModule->shaderBundle, fragmentShaderModule->shaderBundle};
 
     uint16_t bufferBinding = 0;
     uint16_t textureBinding = 0;
@@ -116,7 +113,7 @@ void OpenGL_GraphicsPipeline::recompile() {
 void OpenGL_GraphicsPipeline::bind() {
     glUseProgram(shaderProgram);
 
-    if (!createInfo.vertexDescriptor)
+    if (!vertexDescriptor)
         glBindVertexArray(g_opengl_swapChain->emptyVertexArrayObject);
     
     for (uint8_t i = 0; i < pushConstantBindings.size(); i++) {
@@ -128,19 +125,26 @@ void OpenGL_GraphicsPipeline::bind() {
         //std::cout << "Uniform block 2: " << glGetError() << std::endl;
     }
 
-    glDepthMask(createInfo.config.depthWriteEnable);
-    if (createInfo.config.depthTestEnable) {
+    glDepthMask(config.depthWriteEnable);
+    if (config.depthTestEnable) {
         glEnable(GL_DEPTH_TEST);
-        glDepthFunc(createInfo.config.depthOp);
+        glDepthFunc(config.depthOp);
     } else {
         glDisable(GL_DEPTH_TEST);
     }
 
-    if (createInfo.config.cullMode == LV_CULL_MODE_NONE) {
+    if (config.cullMode == LV_CULL_MODE_NONE) {
         glDisable(GL_CULL_FACE);
     } else {
         glEnable(GL_CULL_FACE);
-        glCullFace(createInfo.config.cullMode);
+        glCullFace(config.cullMode);
+    }
+
+    for (uint8_t i = 0; i < colorBlendAttachments.size(); i++) {
+        if (colorBlendAttachments[i].blendEnable) {
+            glBlendFuncSeparate(colorBlendAttachments[i].srcRgbBlendFactor, colorBlendAttachments[i].dstRgbBlendFactor, colorBlendAttachments[i].srcAlphaBlendFactor, colorBlendAttachments[i].dstAlphaBlendFactor);
+            glBlendEquationSeparate(colorBlendAttachments[i].rgbBlendOp, colorBlendAttachments[i].alphaBlendOp);
+        }
     }
     
     g_opengl_swapChain->activeGraphicsPipeline = this;

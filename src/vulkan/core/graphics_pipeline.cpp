@@ -6,11 +6,8 @@
 
 namespace lv {
 
-void Vulkan_GraphicsPipeline::init(Vulkan_GraphicsPipelineCreateInfo& aCreateInfo) {
-    createInfo = aCreateInfo;
-    pipelineLayout = createInfo.pipelineLayout;
-
-    if (createInfo.renderPass == nullptr)
+void Vulkan_GraphicsPipeline::init() {
+    if (renderPass == nullptr)
         throw std::runtime_error("You must specify a valid render pass");
     
     compile();
@@ -21,25 +18,20 @@ void Vulkan_GraphicsPipeline::destroy() {
 }
 
 void Vulkan_GraphicsPipeline::compile() {
-    Vulkan_PipelineConfigInfo configInfo = defaultPipelineConfigInfo(createInfo.config, createInfo);
-    configInfo.depthStencilInfo.depthTestEnable = createInfo.config.depthTestEnable;
-    configInfo.depthStencilInfo.depthWriteEnable = (createInfo.config.depthTestEnable == VK_TRUE ? createInfo.config.depthWriteEnable : VK_FALSE);
-
-    configInfo.renderPass = createInfo.renderPass->renderPass;
-    configInfo.pipelineLayout = pipelineLayout->pipelineLayout;
+    Vulkan_PipelineConfigInfo configInfo = defaultPipelineConfigInfo();
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    if (createInfo.vertexDescriptor != nullptr) {
-        vertexInputInfo.vertexBindingDescriptionCount = createInfo.vertexDescriptor->vertexDesc.bindingDescriptions.size();
-        vertexInputInfo.pVertexBindingDescriptions = createInfo.vertexDescriptor->vertexDesc.bindingDescriptions.data();
-        vertexInputInfo.vertexAttributeDescriptionCount = createInfo.vertexDescriptor->vertexDesc.attributeDescriptions.size();
-        vertexInputInfo.pVertexAttributeDescriptions = createInfo.vertexDescriptor->vertexDesc.attributeDescriptions.data();
+    if (vertexDescriptor != nullptr) {
+        vertexInputInfo.vertexBindingDescriptionCount = vertexDescriptor->vertexDesc.bindingDescriptions.size();
+        vertexInputInfo.pVertexBindingDescriptions = vertexDescriptor->vertexDesc.bindingDescriptions.data();
+        vertexInputInfo.vertexAttributeDescriptionCount = vertexDescriptor->vertexDesc.attributeDescriptions.size();
+        vertexInputInfo.pVertexAttributeDescriptions = vertexDescriptor->vertexDesc.attributeDescriptions.data();
     }
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages(2);
-    shaderStages[0] = createInfo.vertexShaderModule->stageInfo;
-    shaderStages[1] = createInfo.fragmentShaderModule->stageInfo;
+    shaderStages[0] = vertexShaderModule->stageInfo;
+    shaderStages[1] = fragmentShaderModule->stageInfo;
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -54,9 +46,9 @@ void Vulkan_GraphicsPipeline::compile() {
     pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
     pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
 
-    pipelineInfo.layout = configInfo.pipelineLayout;
-    pipelineInfo.renderPass = configInfo.renderPass;
-    pipelineInfo.subpass = configInfo.subpass;
+    pipelineInfo.layout = pipelineLayout->pipelineLayout;
+    pipelineInfo.renderPass = renderPass->renderPass;
+    pipelineInfo.subpass = subpassIndex;
 
     pipelineInfo.basePipelineIndex = -1;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -83,7 +75,7 @@ void Vulkan_GraphicsPipeline::bind() {
     //std::cout << "DEPENDENCY COUNT: " << (int)g_metal_swapChain->activeFramebuffer->renderPass->dependencies.size() << std::endl;
 }
 
-Vulkan_PipelineConfigInfo Vulkan_GraphicsPipeline::defaultPipelineConfigInfo(Vulkan_GraphicsPipelineConfig& config, Vulkan_GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
+Vulkan_PipelineConfigInfo Vulkan_GraphicsPipeline::defaultPipelineConfigInfo() {
     Vulkan_PipelineConfigInfo configInfo;
 
     //Input assembly
@@ -121,21 +113,17 @@ Vulkan_PipelineConfigInfo Vulkan_GraphicsPipeline::defaultPipelineConfigInfo(Vul
     configInfo.multisampleInfo.alphaToOneEnable = VK_FALSE;       // Optional
 
     //Color blending (attachment)
-    std::vector<Vulkan_RenderPassAttachment>& colorAttachments = graphicsPipelineCreateInfo.renderPass->colorAttachments;
-    configInfo.colorBlendAttachments.resize(colorAttachments.size());
-    for (uint8_t i = 0; i < colorAttachments.size(); i++) {
-        uint8_t index = colorAttachments[i].index;
-        //std::cout << "Blending enabled: " << (enabled.blend ? "true" : "false") << std::endl;
-        configInfo.colorBlendAttachments[index].colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-        VK_COLOR_COMPONENT_A_BIT;
-        configInfo.colorBlendAttachments[index].blendEnable = colorAttachments[i].blendEnable;
-        configInfo.colorBlendAttachments[index].srcColorBlendFactor = colorAttachments[i].srcRgbBlendFactor;
-        configInfo.colorBlendAttachments[index].dstColorBlendFactor = colorAttachments[i].dstRgbBlendFactor;
-        configInfo.colorBlendAttachments[index].colorBlendOp = colorAttachments[i].rgbBlendOp;
-        configInfo.colorBlendAttachments[index].srcAlphaBlendFactor = colorAttachments[i].srcAlphaBlendFactor;
-        configInfo.colorBlendAttachments[index].dstAlphaBlendFactor = colorAttachments[i].dstAlphaBlendFactor;
-        configInfo.colorBlendAttachments[index].alphaBlendOp = colorAttachments[i].alphaBlendOp;
+    configInfo.colorBlendAttachments.resize(colorBlendAttachments.size());
+    for (uint8_t i = 0; i < colorBlendAttachments.size(); i++) {
+        //uint8_t index = i;//colorBlendAttachments[i].index;
+        configInfo.colorBlendAttachments[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        configInfo.colorBlendAttachments[i].blendEnable = colorBlendAttachments[i].blendEnable;
+        configInfo.colorBlendAttachments[i].srcColorBlendFactor = colorBlendAttachments[i].srcRgbBlendFactor;
+        configInfo.colorBlendAttachments[i].dstColorBlendFactor = colorBlendAttachments[i].dstRgbBlendFactor;
+        configInfo.colorBlendAttachments[i].colorBlendOp = colorBlendAttachments[i].rgbBlendOp;
+        configInfo.colorBlendAttachments[i].srcAlphaBlendFactor = colorBlendAttachments[i].srcAlphaBlendFactor;
+        configInfo.colorBlendAttachments[i].dstAlphaBlendFactor = colorBlendAttachments[i].dstAlphaBlendFactor;
+        configInfo.colorBlendAttachments[i].alphaBlendOp = colorBlendAttachments[i].alphaBlendOp;
     }
 
     //Color blending (info)
@@ -151,8 +139,8 @@ Vulkan_PipelineConfigInfo Vulkan_GraphicsPipeline::defaultPipelineConfigInfo(Vul
 
     //Depth and stencil
     configInfo.depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    //configInfo.depthStencilInfo.depthTestEnable = VK_TRUE;
-    //configInfo.depthStencilInfo.depthWriteEnable = VK_TRUE;
+    configInfo.depthStencilInfo.depthTestEnable = config.depthTestEnable;
+    configInfo.depthStencilInfo.depthWriteEnable = (config.depthTestEnable == VK_TRUE ? config.depthWriteEnable : VK_FALSE);
     configInfo.depthStencilInfo.depthCompareOp = config.depthOp;
     configInfo.depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
     configInfo.depthStencilInfo.minDepthBounds = 0.0f;  // Optional

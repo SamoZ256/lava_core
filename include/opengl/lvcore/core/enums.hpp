@@ -133,9 +133,11 @@
 #define LV_IMAGE_USAGE_SAMPLED_BIT 0x1
 #define LV_IMAGE_USAGE_COLOR_ATTACHMENT_BIT 0x2
 #define LV_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT 0x4
-#define LV_IMAGE_USAGE_STORAGE_BIT 0x8
-#define LV_IMAGE_USAGE_TRANSFER_SRC_BIT 0x10
-#define LV_IMAGE_USAGE_TRANSFER_DST_BIT 0x20
+#define LV_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT 0x8
+#define LV_IMAGE_USAGE_INPUT_ATTACHMENT_BIT 0x10
+#define LV_IMAGE_USAGE_STORAGE_BIT 0x20
+#define LV_IMAGE_USAGE_TRANSFER_SRC_BIT 0x40
+#define LV_IMAGE_USAGE_TRANSFER_DST_BIT 0x80
 
 //Filter
 #define LvFilter GLenum
@@ -303,5 +305,22 @@ type = vertexFormat % 1000000;
 
 #define LV_MEMORY_ALLOCATION_CREATE_DEDICATED_BIT 0x1
 #define LV_MEMORY_ALLOCATION_CREATE_MIN_MEMORY_BIT 0x2
+
+//Clear values
+struct LvClearColorValue {
+    float       float32[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    int32_t     int32[4] = {0, 0, 0, 1};
+    uint32_t    uint32[4] = {0, 0, 0, 1};
+};
+
+struct LvClearDepthStencilValue {
+    float       depth = 1.0f;
+    uint32_t    stencil = 0;
+};
+
+struct LvClearValue {
+    LvClearColorValue color;
+    LvClearDepthStencilValue depthStencil;
+};
 
 #endif

@@ -45,9 +45,7 @@ void OpenGL_ShaderBundle::init(const char* filename) {
             std::cout << "Shader bundle 4.1.3" << std::endl;
             bindings[setNumber][bindingNumber].exists = true;
             std::cout << "Shader bundle 4.1.4" << std::endl;
-            std::string name = jsonBinding["name"];
             std::cout << (int)bindingCounts[setNumber] << " : " << (int)bindingNumber << std::endl;
-            std::cout << name << std::endl;
             bindings[setNumber][bindingNumber].name = jsonBinding["name"];
             std::cout << "Shader bundle 4.2" << std::endl;
 

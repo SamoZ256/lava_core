@@ -7,18 +7,22 @@
 
 namespace lv {
 
+struct OpenGL_ColorBlendAttachment {
+    uint8_t index = 0;
+    bool blendEnable = LV_FALSE;
+    LvBlendFactor srcRgbBlendFactor = LV_BLEND_FACTOR_SRC_ALPHA;
+    LvBlendFactor dstRgbBlendFactor = LV_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    LvBlendOp rgbBlendOp = LV_BLEND_OP_ADD;
+    LvBlendFactor srcAlphaBlendFactor = LV_BLEND_FACTOR_ONE;
+    LvBlendFactor dstAlphaBlendFactor = LV_BLEND_FACTOR_ONE;
+    LvBlendOp alphaBlendOp = LV_BLEND_OP_MAX;
+};
+
 struct OpenGL_RenderPassAttachment {
-    GLenum format;
-    int8_t index = -1;
+    uint8_t index = 0;
+    LvFormat format;
     LvAttachmentLoadOp loadOp = LV_ATTACHMENT_LOAD_OP_DONT_CARE;
     LvAttachmentStoreOp storeOp = LV_ATTACHMENT_STORE_OP_STORE;
-    bool blendEnable = false;
-    GLenum srcRgbBlendFactor = GL_SRC_ALPHA;
-    GLenum dstRgbBlendFactor = GL_ONE_MINUS_SRC_ALPHA;
-    GLenum rgbBlendOp = GL_FUNC_ADD;
-    GLenum srcAlphaBlendFactor = GL_ONE;
-    GLenum dstAlphaBlendFactor = GL_ONE;
-    GLenum alphaBlendOp = GL_MAX;
     LvImageLayout initialLayout = LV_IMAGE_LAYOUT_UNDEFINED;
     LvImageLayout finalLayout = LV_IMAGE_LAYOUT_UNDEFINED;
 };
@@ -29,8 +33,9 @@ struct OpenGL_SubpassAttachment {
 };
 
 struct OpenGL_FramebufferAttachment {
-    OpenGL_ImageView* imageView = nullptr;
     int8_t index = -1;
+    OpenGL_ImageView* imageView = nullptr;
+    LvClearValue clearValue;
 };
 
 } //namespace lv

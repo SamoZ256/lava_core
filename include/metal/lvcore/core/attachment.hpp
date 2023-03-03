@@ -7,18 +7,22 @@
 
 namespace lv {
 
+struct Metal_ColorBlendAttachment {
+    uint8_t index = 0;
+    bool blendEnable = LV_FALSE;
+    LvBlendFactor srcRgbBlendFactor = LV_BLEND_FACTOR_SRC_ALPHA;
+    LvBlendFactor dstRgbBlendFactor = LV_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    LvBlendOp rgbBlendOp = LV_BLEND_OP_ADD;
+    LvBlendFactor srcAlphaBlendFactor = LV_BLEND_FACTOR_ONE;
+    LvBlendFactor dstAlphaBlendFactor = LV_BLEND_FACTOR_ONE;
+    LvBlendOp alphaBlendOp = LV_BLEND_OP_MAX;
+};
+
 struct Metal_RenderPassAttachment {
-    MTL::PixelFormat format;
-    int8_t index = -1;
-    MTL::LoadAction loadOp = MTL::LoadActionDontCare;
-    MTL::StoreAction storeOp = MTL::StoreActionStore;
-    bool blendEnable = false;
-    MTL::BlendFactor srcRgbBlendFactor = MTL::BlendFactorSourceAlpha;
-    MTL::BlendFactor dstRgbBlendFactor = MTL::BlendFactorOneMinusSourceAlpha;
-    MTL::BlendOperation rgbBlendOp = MTL::BlendOperationAdd;
-    MTL::BlendFactor srcAlphaBlendFactor = MTL::BlendFactorOne;
-    MTL::BlendFactor dstAlphaBlendFactor = MTL::BlendFactorOne;
-    MTL::BlendOperation alphaBlendOp = MTL::BlendOperationMax;
+    uint8_t index = 0;
+    LvFormat format;
+    LvAttachmentLoadOp loadOp = LV_ATTACHMENT_LOAD_OP_DONT_CARE;
+    LvAttachmentStoreOp storeOp = LV_ATTACHMENT_STORE_OP_STORE;
     LvImageLayout initialLayout = LV_IMAGE_LAYOUT_UNDEFINED;
     LvImageLayout finalLayout = LV_IMAGE_LAYOUT_UNDEFINED;
 };
@@ -29,8 +33,9 @@ struct Metal_SubpassAttachment {
 };
 
 struct Metal_FramebufferAttachment {
-    Metal_ImageView* imageView = nullptr;
     int8_t index = -1;
+    Metal_ImageView* imageView = nullptr;
+    LvClearValue clearValue;
 };
 
 } //namespace lv

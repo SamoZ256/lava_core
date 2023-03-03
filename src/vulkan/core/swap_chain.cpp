@@ -49,7 +49,7 @@ Vulkan_SwapChain::Vulkan_SwapChain(Vulkan_SwapChainCreateInfo& createInfo) {
 	renderPass.dependencies.push_back(dependencies[0]);
 	renderPass.dependencies.push_back(dependencies[1]);
 	
-	renderPass.addColorAttachment({
+	renderPass.addAttachment({
 		.format = VK_FORMAT_B8G8R8A8_SRGB,
 		.index = 0,
 		.loadOp = loadOp,

@@ -31,7 +31,7 @@ public:
 
     void init(uint16_t aWidth, uint16_t aHeight);
 
-    void initFromFile(const char* filename);
+    void initFromFile(const char* filename, bool generateMipmaps = false);
 
     void destroy() { for (uint8_t i = 0; i < frameCount; i++) images[i]->release(); }
 

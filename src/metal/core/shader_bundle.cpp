@@ -49,6 +49,8 @@ void Metal_ShaderBundle::init(const char* filename) {
                 //std::cout << "Combined image sampler" << std::endl;
                 textureBindings[setNumber][bindingNumber] = jsonBinding["textureBinding"];
                 samplerBindings[setNumber][bindingNumber] = jsonBinding["samplerBinding"];
+            } else if (descriptorType == "image") {
+                textureBindings[setNumber][bindingNumber] = jsonBinding["textureBinding"];
             }
         }
     }

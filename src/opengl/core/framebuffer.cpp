@@ -49,7 +49,6 @@ void OpenGL_Framebuffer::init(OpenGL_RenderPass* aRenderPass) {
                 depthAttachment.imageView->image->image,
                 depthAttachment.imageView->baseMip
             );
-            std::cout<< "Depth1: " << glGetError() << std::endl;
         } else {
             glFramebufferTextureLayer(
                 GL_FRAMEBUFFER,
@@ -58,14 +57,8 @@ void OpenGL_Framebuffer::init(OpenGL_RenderPass* aRenderPass) {
                 depthAttachment.imageView->baseMip,
                 depthAttachment.imageView->baseLayer
             );
-            std::cout<< "Depth2: " << glGetError() << std::endl;
         }
     }
-    std::cout << "Framebuffer: " << glGetError() << std::endl;
-
-    //TODO: add input attachments
-    if (inputAttachments.size() != 0)
-        LV_ERROR("OpenGL backend does not support input attachments right now");
 
     GLenum framebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (framebufferStatus != GL_FRAMEBUFFER_COMPLETE)
@@ -73,15 +66,11 @@ void OpenGL_Framebuffer::init(OpenGL_RenderPass* aRenderPass) {
     
     clearValues.resize(colorAttachments.size() + (depthAttachment.index == -1 ? 0 : 1));
     for (auto& colorAttachment : colorAttachments) {
-        clearValues[colorAttachment.index].r = 0.0f;
-        clearValues[colorAttachment.index].g = 0.0f;
-        clearValues[colorAttachment.index].b = 0.0f;
-        clearValues[colorAttachment.index].a = 0.0f;
+        clearValues[colorAttachment.index].color = {0.0f, 0.0f, 0.0f, 1.0f}; //TODO: pick the clear value based on format
     }
 
     if (depthAttachment.index != -1)
-        clearValues[depthAttachment.index].depth = 1.0f;
-        clearValues[depthAttachment.index].stencil = 0;
+        clearValues[depthAttachment.index].depthStencil = {1.0f, 0};
 }
 
 void OpenGL_Framebuffer::bind() {
@@ -91,18 +80,14 @@ void OpenGL_Framebuffer::bind() {
         uint8_t index = colorAttachments[i].index;
         OpenGL_RenderPassAttachment* renderPassAttachment = renderPass->sortedAttachments[index];
         if (renderPassAttachment->loadOp == LV_ATTACHMENT_LOAD_OP_CLEAR)
-            glClearBufferfv(GL_COLOR, index, &clearValues[index].r);
-        if (renderPassAttachment->blendEnable) {
-            glBlendFuncSeparate(renderPassAttachment->srcRgbBlendFactor, renderPassAttachment->dstRgbBlendFactor, renderPassAttachment->srcAlphaBlendFactor, renderPassAttachment->dstAlphaBlendFactor);
-            glBlendEquationSeparate(renderPassAttachment->rgbBlendOp, renderPassAttachment->alphaBlendOp);
-        }
+            glClearBufferfv(GL_COLOR, index, clearValues[index].color.float32); //TODO: pick the clear value based on format
     }
 
     if (depthAttachment.index != -1) {
         uint8_t index = depthAttachment.index;
         OpenGL_RenderPassAttachment* renderPassAttachment = renderPass->sortedAttachments[index];
         if (renderPassAttachment->loadOp == LV_ATTACHMENT_LOAD_OP_CLEAR)
-            glClearBufferfv(GL_DEPTH, index, &clearValues[index].depth);
+            glClearBufferfv(GL_DEPTH, index, &clearValues[index].depthStencil.depth);
         //TODO: clear the stencil as well
     }
     //TODO: remove this

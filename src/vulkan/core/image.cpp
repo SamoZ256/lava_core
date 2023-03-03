@@ -12,6 +12,11 @@ void Vulkan_Image::init(uint16_t aWidth, uint16_t aHeight) {
 
     width = aWidth;
     height = aHeight;
+    
+#ifdef __APPLE__
+    if (memoryType == LV_MEMORY_TYPE_MEMORYLESS)
+        memoryType = LV_MEMORY_TYPE_PRIVATE;
+#endif
 
     if (usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT || usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
         memoryAllocationFlags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
@@ -28,7 +33,7 @@ void Vulkan_Image::init(uint16_t aWidth, uint16_t aHeight) {
     }
 }
 
-void Vulkan_Image::initFromFile(const char* filename) {
+void Vulkan_Image::initFromFile(const char* filename, bool bGenerateMipmaps) {
     int aWidth, aHeight, nbChannels;
     void* data = (void*)stbi_load(filename, &aWidth, &aHeight, &nbChannels, STBI_rgb_alpha);
     width = aWidth;
@@ -38,10 +43,16 @@ void Vulkan_Image::initFromFile(const char* filename) {
         throw std::runtime_error(("Failed to load image '" + std::string(filename) + "'").c_str());
     }
 
+    if (bGenerateMipmaps)
+        mipCount = std::max(ceil(log2(width)), ceil(log2(height)));
+
     init(width, height);
     copyDataTo(0, data);
 
     stbi_image_free(data);
+
+    if (bGenerateMipmaps)
+        generateMipmaps(0);
 }
 
 void Vulkan_Image::destroy() {
@@ -71,6 +82,7 @@ void Vulkan_Image::copyDataTo(uint8_t threadIndex, void* data) {
 }
 
 void Vulkan_Image::transitionLayout(uint8_t threadIndex, uint8_t imageIndex, VkImageLayout srcLayout, VkImageLayout dstLayout) {
+    //std::cout << "Transitioning: " << srcLayout << " -> " << dstLayout << std::endl;
     Vulkan_ImageHelper::transitionImageLayout(threadIndex, images[imageIndex], format, srcLayout, dstLayout, aspectMask, layerCount, mipCount);
 }
 

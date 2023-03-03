@@ -17,6 +17,8 @@ void OpenGL_Sampler::init() {
     glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, maxLod);
     if (maxLod > 0.0f)
         glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    else
+        glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
 
 OpenGL_ImageInfo OpenGL_Sampler::descriptorInfo(OpenGL_ImageView& imageView, LvImageLayout imageLayout) {

@@ -54,7 +54,7 @@ void OpenGL_Buffer::bindVertexBuffer() {
     if (hasVertexArrayObject) {
         glBindVertexArray(vertexAttributeObject);
         if (!createdVertexArrayObject) {
-            OpenGL_VertexDescriptor* vertexDescriptor = g_opengl_swapChain->activeGraphicsPipeline->createInfo.vertexDescriptor;
+            OpenGL_VertexDescriptor* vertexDescriptor = g_opengl_swapChain->activeGraphicsPipeline->vertexDescriptor;
             if (!vertexDescriptor)
                 LV_ERROR("Vertex buffer is bound, but no vertex descriptor specified in currently bound graphics pipeline");
             for (auto& binding : vertexDescriptor->bindings) {

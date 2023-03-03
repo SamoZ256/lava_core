@@ -10,44 +10,40 @@
 
 namespace lv {
 
-void Metal_GraphicsPipeline::init(Metal_GraphicsPipelineCreateInfo& aCreateInfo) {
-    createInfo = aCreateInfo;
-    pipelineLayout = createInfo.pipelineLayout;
-
+void Metal_GraphicsPipeline::init() {
     compile();
-
-    cullMode = createInfo.config.cullMode;
 }
 
 void Metal_GraphicsPipeline::compile() {
     MTL::RenderPipelineDescriptor* descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
-    descriptor->setVertexFunction(createInfo.vertexShaderModule->function);
-    descriptor->setFragmentFunction(createInfo.fragmentShaderModule->function);
-    //descriptor->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
-    if (createInfo.vertexDescriptor != nullptr)
-        descriptor->setVertexDescriptor(createInfo.vertexDescriptor->vertexDesc);
+    descriptor->setVertexFunction(vertexShaderModule->function);
+    descriptor->setFragmentFunction(fragmentShaderModule->function);
+    if (vertexDescriptor != nullptr)
+        descriptor->setVertexDescriptor(vertexDescriptor->vertexDesc);
     
     descriptor->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassTriangle);
-    if (createInfo.renderPass->depthAttachment.index != -1)
-        descriptor->setDepthAttachmentPixelFormat(createInfo.renderPass->depthAttachment.format);
-    for (uint8_t i = 0; i < createInfo.renderPass->colorAttachments.size(); i++) {
-        Metal_RenderPassAttachment* renderPassAttachment = &createInfo.renderPass->colorAttachments[createInfo.renderPass->colorAttachments[i].index];
-        descriptor->colorAttachments()->object(renderPassAttachment->index)->setPixelFormat(renderPassAttachment->format);
+
+    auto& subpass = renderPass->subpasses[subpassIndex];
+    if (subpass->depthAttachment.index != -1) {
+        for (uint8_t i = 0; i < renderPass->attachments.size(); i++) {
+            if (renderPass->attachments[i].format >= LV_FORMAT_D16_UNORM && renderPass->attachments[i].format <= MTL::PixelFormatX24_Stencil8)
+                descriptor->setDepthAttachmentPixelFormat(renderPass->attachments[i].format);
+        }
     }
 
     //Setting blend states
-    for (uint8_t i = 0; i < createInfo.renderPass->colorAttachments.size(); i++) {
-        Metal_RenderPassAttachment* renderPassAttachment = &createInfo.renderPass->colorAttachments[createInfo.renderPass->colorAttachments[i].index];
-        MTL::RenderPipelineColorAttachmentDescriptor* attachment = descriptor->colorAttachments()->object(renderPassAttachment->index);
-        //attachment->setPixelFormat(renderPassAttachment->format);
-        if (renderPassAttachment->blendEnable) {
+    for (uint8_t i = 0; i < colorBlendAttachments.size(); i++) {
+        Metal_RenderPassAttachment* renderPassAttachment = &renderPass->attachments[colorBlendAttachments[i].index];
+        MTL::RenderPipelineColorAttachmentDescriptor* attachment = descriptor->colorAttachments()->object(i);
+        attachment->setPixelFormat(renderPassAttachment->format);
+        if (colorBlendAttachments[i].blendEnable) {
             attachment->setBlendingEnabled(true);
-            attachment->setSourceRGBBlendFactor(renderPassAttachment->srcRgbBlendFactor);
-            attachment->setDestinationRGBBlendFactor(renderPassAttachment->dstRgbBlendFactor);
-            attachment->setRgbBlendOperation(renderPassAttachment->rgbBlendOp);
-            attachment->setSourceAlphaBlendFactor(renderPassAttachment->srcAlphaBlendFactor);
-            attachment->setDestinationAlphaBlendFactor(renderPassAttachment->dstAlphaBlendFactor);
-            attachment->setAlphaBlendOperation(renderPassAttachment->alphaBlendOp);
+            attachment->setSourceRGBBlendFactor(colorBlendAttachments[i].srcRgbBlendFactor);
+            attachment->setDestinationRGBBlendFactor(colorBlendAttachments[i].dstRgbBlendFactor);
+            attachment->setRgbBlendOperation(colorBlendAttachments[i].rgbBlendOp);
+            attachment->setSourceAlphaBlendFactor(colorBlendAttachments[i].srcAlphaBlendFactor);
+            attachment->setDestinationAlphaBlendFactor(colorBlendAttachments[i].dstAlphaBlendFactor);
+            attachment->setAlphaBlendOperation(colorBlendAttachments[i].alphaBlendOp);
         }
     }
 
@@ -60,9 +56,9 @@ void Metal_GraphicsPipeline::compile() {
     descriptor->release();
 
     MTL::DepthStencilDescriptor* depthStencilDesc = MTL::DepthStencilDescriptor::alloc()->init();
-    if (createInfo.config.depthTestEnable) {
-        depthStencilDesc->setDepthCompareFunction(createInfo.config.depthOp);
-        depthStencilDesc->setDepthWriteEnabled(createInfo.config.depthWriteEnable);
+    if (config.depthTestEnable) {
+        depthStencilDesc->setDepthCompareFunction(config.depthOp);
+        depthStencilDesc->setDepthWriteEnabled(config.depthWriteEnable);
     }/* else {
         depthStencilDesc->setDepthWriteEnabled(false);
     }*/
@@ -80,10 +76,10 @@ void Metal_GraphicsPipeline::bind() {
 
     g_metal_swapChain->activeRenderEncoder->setDepthStencilState(depthStencilState);
     g_metal_swapChain->activeRenderEncoder->setFrontFacingWinding(MTL::WindingCounterClockwise);
-    g_metal_swapChain->activeRenderEncoder->setCullMode(cullMode);
-    g_metal_swapChain->activePipelineLayout = createInfo.pipelineLayout;
-    g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_VERTEX_INDEX] = createInfo.vertexShaderModule->shaderBundle;
-    g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_FRAGMENT_INDEX] = createInfo.fragmentShaderModule->shaderBundle;
+    g_metal_swapChain->activeRenderEncoder->setCullMode(config.cullMode);
+    g_metal_swapChain->activePipelineLayout = pipelineLayout;
+    g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_VERTEX_INDEX] = vertexShaderModule->shaderBundle;
+    g_metal_swapChain->activeShaderBundles[LV_SHADER_STAGE_FRAGMENT_INDEX] = fragmentShaderModule->shaderBundle;
 }
 
 void Metal_GraphicsPipeline::uploadPushConstants(void* data, uint16_t index/*, size_t size, LvShaderStageFlags shaderStage*/) {

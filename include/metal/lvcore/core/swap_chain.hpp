@@ -13,6 +13,15 @@
 
 namespace lv {
 
+struct Metal_SwapChainFramebuffer {
+    MTL::RenderPassDescriptor* renderPass;
+    MTL::RenderCommandEncoder* encoder;
+
+    void bind();
+
+    void unbind();
+};
+
 struct Metal_SwapChainCreateInfo {
 	LvndWindow* window;
   	bool vsyncEnabled = true;
@@ -25,13 +34,10 @@ public:
     uint8_t maxFramesInFlight;
     uint8_t crntFrame = 0;
 
-    Metal_Subpass subpass;
-    Metal_RenderPass renderPass;
-    Metal_Framebuffer framebuffer;
+    bool clearAttachment;
+
+    Metal_SwapChainFramebuffer framebuffer;
     Metal_CommandBuffer commandBuffer;
-    Metal_Image colorImage;
-    Metal_ImageView colorImageView;
-    //Image depthAttachment;
 
     LvndWindow* _window;
     CA::MetalDrawable* drawable;
@@ -63,7 +69,7 @@ public:
     Metal_CommandBuffer* activeCommandBuffer = nullptr;
     MTL::RenderCommandEncoder* activeRenderEncoder = nullptr;
     MTL::ComputeCommandEncoder* activeComputeEncoder = nullptr;
-    std::vector<MTL::RenderPassDescriptor*> activeRenderPasses;
+    MTL::RenderPassDescriptor* activeRenderPass;
     Metal_PipelineLayout* activePipelineLayout;
     Metal_ShaderBundle* activeShaderBundles[3] = {nullptr};
 

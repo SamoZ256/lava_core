@@ -2,7 +2,7 @@
 #define LV_METAL_GRAPHICS_PIPELINE_H
 
 #include "shader_module.hpp"
-#include "framebuffer.hpp"
+#include "render_pass.hpp"
 #include "vertex_descriptor.hpp"
 #include "pipeline_layout.hpp"
 
@@ -15,29 +15,22 @@ struct Metal_GraphicsPipelineConfig {
     MTL::CompareFunction depthOp = MTL::CompareFunctionLess;
 };
 
-struct Metal_GraphicsPipelineCreateInfo {
-    Metal_ShaderModule* vertexShaderModule;
-    Metal_ShaderModule* fragmentShaderModule;
-    Metal_PipelineLayout* pipelineLayout;
-    Metal_RenderPass* renderPass;
-
-    Metal_VertexDescriptor* vertexDescriptor = nullptr;
-
-    Metal_GraphicsPipelineConfig config;
-};
-
 class Metal_GraphicsPipeline {
 public:
     MTL::RenderPipelineState* graphicsPipeline;
 
     MTL::DepthStencilState* depthStencilState;
-    MTL::CullMode cullMode;
 
+    Metal_ShaderModule* vertexShaderModule;
+    Metal_ShaderModule* fragmentShaderModule;
     Metal_PipelineLayout* pipelineLayout;
+    Metal_RenderPass* renderPass;
+    uint8_t subpassIndex = 0;
+    Metal_VertexDescriptor* vertexDescriptor = nullptr;
+    Metal_GraphicsPipelineConfig config;
+    std::vector<Metal_ColorBlendAttachment> colorBlendAttachments;
 
-    Metal_GraphicsPipelineCreateInfo createInfo;
-
-    void init(Metal_GraphicsPipelineCreateInfo& aCreateInfo);
+    void init();
 
     void destroy() { graphicsPipeline->release(); }
 
@@ -48,6 +41,8 @@ public:
     void bind();
 
     void uploadPushConstants(void* data, uint16_t index/*, size_t size, LvShaderStageFlags shaderStage*/);
+
+    void addColorBlendAttachment(Metal_ColorBlendAttachment attachment) { colorBlendAttachments.push_back(attachment); }
 };
 
 } //namespace lv

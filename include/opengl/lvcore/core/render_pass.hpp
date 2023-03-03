@@ -22,9 +22,7 @@ class OpenGL_RenderPass {
 public:
     std::vector<OpenGL_Subpass*> subpasses;
 
-    std::vector<OpenGL_RenderPassAttachment> colorAttachments;
-    OpenGL_RenderPassAttachment depthAttachment;
-    std::vector<OpenGL_RenderPassAttachment> inputAttachments;
+    std::vector<OpenGL_RenderPassAttachment> attachments;
 
     std::vector<OpenGL_RenderPassAttachment*> sortedAttachments;
 
@@ -34,11 +32,7 @@ public:
 
     void addSubpass(OpenGL_Subpass* subpass) { subpasses.push_back(subpass); }
 
-    void addColorAttachment(OpenGL_RenderPassAttachment attachment) { colorAttachments.push_back(attachment); }
-
-    void setDepthAttachment(OpenGL_RenderPassAttachment attachment) { depthAttachment = attachment; }
-
-    void addInputAttachment(OpenGL_RenderPassAttachment attachment) { inputAttachments.push_back(attachment); }
+    void addAttachment(OpenGL_RenderPassAttachment attachment) { attachments.push_back(attachment); }
 };
 
 } //namespace lv

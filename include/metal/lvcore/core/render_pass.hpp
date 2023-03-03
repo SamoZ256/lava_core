@@ -22,9 +22,7 @@ class Metal_RenderPass {
 public:
     std::vector<Metal_Subpass*> subpasses;
 
-    std::vector<Metal_RenderPassAttachment> colorAttachments;
-    Metal_RenderPassAttachment depthAttachment;
-    std::vector<Metal_RenderPassAttachment> inputAttachments;
+    std::vector<Metal_RenderPassAttachment> attachments;
 
     std::vector<Metal_RenderPassAttachment*> sortedAttachments;
 
@@ -34,11 +32,7 @@ public:
 
     void addSubpass(Metal_Subpass* subpass) { subpasses.push_back(subpass); }
 
-    void addColorAttachment(Metal_RenderPassAttachment attachment) { colorAttachments.push_back(attachment); }
-
-    void setDepthAttachment(Metal_RenderPassAttachment attachment) { depthAttachment = attachment; }
-
-    void addInputAttachment(Metal_RenderPassAttachment attachment) { inputAttachments.push_back(attachment); }
+    void addAttachment(Metal_RenderPassAttachment attachment) { attachments.push_back(attachment); }
 };
 
 } //namespace lv
